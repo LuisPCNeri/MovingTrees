@@ -1,0 +1,63 @@
+# =========================
+# Backend: Spring Boot / Java
+# =========================
+target/
+build/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Compiled class files
+*.class
+
+# Package Files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# =========================
+# Frontend: React / TypeScript / Vite
+# =========================
+node_modules/
+dist/
+dist-ssr/
+
+# Node logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage/
+
+# =========================
+# OS & Editors
+# =========================
+# Neovim / Vim
+*.swp
+*.swo
+*~
+Session.vim
+.netrwhist
+
+# IntelliJ / Eclipse / VS Code
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+
+# System
+.DS_Store
+.directory
+Thumbs.db
