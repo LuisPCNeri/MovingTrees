@@ -39,3 +39,25 @@ His work is evaluated by how quickly broken vehicles are fixed and how many vehi
 </td>
 </tr>
 </table>
+
+**Box 3.** Secondary Persona: Pedro, a Field Technician.
+
+<table>
+<tr>
+<td width="250" valign="top">
+<img src="pedro.jpg" alt="Pedro" width="250">
+</td>
+<td valign="top">
+
+**Pedro** is a 26 year-old maintenance technician at MovingTrees. He finished a vocational course in electromechanics and has always liked fixing bicycles. In his free time, he goes mountain biking with friends.
+
+He spends the day on the street, going from hub to hub to inspect vehicles, swap batteries and do repairs. He uses the platform only on his phone, often with dirty hands or gloves, so he needs screens with few steps and big buttons.
+
+Today he receives tasks by phone call or text message, often without details about the fault. Sometimes he travels to a hub and finds that the vehicle has already been moved, or that he did not bring the right part.
+
+**Motivation:** Pedro would like to know which repairs are his and which are most urgent, get clear information about each fault before he leaves, and register what he did quickly so the vehicle can be used again.
+
+</td>
+</tr>
+</table>
+
