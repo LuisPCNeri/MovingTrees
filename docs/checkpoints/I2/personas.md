@@ -34,11 +34,11 @@ He uses his smartphone daily, but he is not a tech enthusiast: he gives up on ap
 
 **André** is a 31-year-old operations coordinator at MovingTrees, responsible for the contract with the municipality. He has a degree in logistics management and, in his free time, he plays padel with his colleagues and likes to cycle along the river on Sundays.
 
-He manages the fleet day to day: he registers new vehicles, makes sure each hub has enough of them and assigns repairs to the field technicians. He works mostly at a desk, and needs a clear view of the whole fleet at once.
+He manages the fleet day to day and is the person responsible for the maintenance tasks on the platform: he creates repair tasks when a vehicle has a problem, decides how urgent each one is, assigns it to a field technician and follows it until it is closed. He also registers new vehicles and makes sure each hub has enough of them. He works mostly at a desk, and needs a clear view of the whole fleet and of all open tasks at once.
 
-His work is evaluated by how quickly broken vehicles are fixed and how many vehicles are ready to use every day. Today he often finds out about problems only when a worker calls to complain, and he spends a lot of time on the phone to understand which hubs are empty and which are full, so he can move vehicles between them.
+His work is evaluated by how quickly broken vehicles are fixed and how many vehicles are ready to use every day. Today he often finds out about problems only when a worker calls to complain, and he keeps track of repairs in spreadsheets and phone calls, so it is hard to know which tasks are late or who is working on each one.
 
-**Motivation:** André would like to see the state of the whole fleet in one place, be warned about faults and unbalanced hubs before workers are affected, and make sure every repair is done on time.
+**Motivation:** André would like to create and track all maintenance tasks in one place, assign them to the right technician, and be warned about faults and late repairs before workers are affected.
 
 </td>
 </tr>
