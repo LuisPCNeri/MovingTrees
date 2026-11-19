@@ -1,3 +1,7 @@
+The design and development of MovingTrees is supported by four Personas, one per main actor of the system: a primary Persona, Paulo, a municipal gardener (Box 1); two secondary Personas on the operator side, André, a fleet operator (Box 2), and Pedro, a field technician (Box 3); and a secondary Persona on the client side, Francisca, a municipal manager (Box 4).
+
+Paulo is the primary Persona because the core value of the service, finding and using a suitable vehicle for green-space maintenance, is delivered to him. Pedro was kept as a distinct Persona from André, although both belong to the operator role, because he works in the field from a phone and has different needs from André, who manages the fleet from a desk.
+
 **Box 1.** Primary Persona: Paulo, a Field Worker.
 
 <table>
@@ -7,7 +11,7 @@
 </td>
 <td valign="top">
 
-**Paulo** is a 42 year-old gardener who has worked in the Parks and Gardens department of the municipality for 15 years. Outside work, he enjoys fishing on weekends and watching football with his friends.
+**Paulo** is a 42-year-old gardener who has worked in the Parks and Gardens department of the municipality for 15 years. Outside work, he enjoys fishing on weekends and watching football with his friends.
 
 His team maintains six parks spread across the city, and every day he moves between two or three of them, carrying tools such as hedge trimmers, rakes and bags of fertilizer. Until now, he has depended on the department van, which is often busy, so he loses time waiting for it or walking between parks.
 
@@ -28,7 +32,7 @@ He uses his smartphone daily, but he is not a tech enthusiast: he gives up on ap
 </td>
 <td valign="top">
 
-**André** is a 31 year-old operations coordinator at MovingTrees, responsible for the contract with the municipality. He has a degree in logistics management and, in his free time, he plays padel with his colleagues and likes to cycle along the river on Sundays.
+**André** is a 31-year-old operations coordinator at MovingTrees, responsible for the contract with the municipality. He has a degree in logistics management and, in his free time, he plays padel with his colleagues and likes to cycle along the river on Sundays.
 
 He manages the fleet day to day: he registers new vehicles, makes sure each hub has enough of them and assigns repairs to the field technicians. He works mostly at a desk, and needs a clear view of the whole fleet at once.
 
@@ -49,7 +53,7 @@ His work is evaluated by how quickly broken vehicles are fixed and how many vehi
 </td>
 <td valign="top">
 
-**Pedro** is a 26 year-old maintenance technician at MovingTrees. He finished a vocational course in electromechanics and has always liked fixing bicycles. In his free time, he goes mountain biking with friends.
+**Pedro** is a 26-year-old maintenance technician at MovingTrees. He finished a vocational course in electromechanics and has always liked fixing bicycles. In his free time, he goes mountain biking with friends.
 
 He spends the day on the street, going from hub to hub to inspect vehicles, swap batteries and do repairs. He uses the platform only on his phone, often with dirty hands or gloves, so he needs screens with few steps and big buttons.
 
@@ -61,3 +65,23 @@ Today he receives tasks by phone call or text message, often without details abo
 </tr>
 </table>
 
+**Box 4.** Secondary Persona: Francisca, a Client Manager.
+
+<table>
+<tr>
+<td width="250" valign="top">
+<img src="francisca.jpg" alt="Francisca" width="250">
+</td>
+<td valign="top">
+
+**Francisca** is a 49-year-old landscape architect and the head of the Green Spaces division of the municipality. She has two teenage children and, at weekends, she likes to walk in the city's parks, where she often notices what needs to be fixed.
+
+She signed the contract with MovingTrees and has to justify its cost to the city council. She decides which teams may use which vehicles, for how long, and how many vehicles each hub should have.
+
+Every month she must report on how the service is going, but today she depends on what the operator tells her and on complaints from the teams. She has no reliable numbers on how much the fleet is used, how long repairs take or which teams use it most.
+
+**Motivation:** Francisca would like to set clear rules for the use of the fleet and have up-to-date numbers on its use and repairs, so she can show the council that the service is worth its cost.
+
+</td>
+</tr>
+</table>
