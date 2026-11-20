@@ -1,13 +1,13 @@
-The design and development of MovingTrees is supported by four Personas, one per main actor of the system: a primary Persona, Paulo, a municipal gardener (Box 1); two secondary Personas on the operator side, André, a fleet operator (Box 2), and Pedro, a field technician (Box 3); and a secondary Persona on the client side, Francisca, a municipal manager (Box 4).
+The design and development of MovingTrees is supported by four Personas, each representing a main actor of the system: a primary Persona, Paulo, a municipal gardener (Box 1); two secondary Personas on the operator side, André, a fleet operator (Box 2), and Pedro, a field technician (Box 3); and a secondary Persona responsible for the overall administration of the platform, Francisca, a municipal system administrator (Box 4).
 
-Paulo is the primary Persona because the core value of the service, finding and using a suitable vehicle for green-space maintenance, is delivered to him. Pedro was kept as a distinct Persona from André, although both belong to the operator role, because he works in the field from a phone and has different needs from André, who manages the fleet from a desk.
+Paulo is the primary Persona because the core value of the service, finding and using a suitable vehicle for green-space maintenance, is delivered to him. Pedro was kept as a distinct Persona from André, although both belong to the operator role, because he works in the field from a phone and has different needs from André, who manages the fleet from a desk. Francisca represents a different perspective: rather than focusing on individual fleet operations, she oversees the platform as a whole, ensuring that its operation, usage and performance can be monitored and managed effectively.
 
 **Box 1.** Primary Persona: Paulo, a Field Worker.
 
 <table>
 <tr>
 <td width="250" valign="top">
-<img src="paulo.jpg" alt="Paulo" width="250">
+<img src="personas-images/paulo.jpg" alt="Paulo" width="250">
 </td>
 <td valign="top">
 
@@ -28,12 +28,12 @@ He uses his smartphone daily, but he is not a tech enthusiast: he gives up on ap
 <table>
 <tr>
 <td width="250" valign="top">
-<img src="andre.jpg" alt="André" width="250">
+<img src="personas-images/andre.jpg" alt="André" width="250">
 </td>
 <td valign="top">
 
 **André** is a 31-year-old operations coordinator at MovingTrees, responsible for the contract with the municipality. He has a degree in logistics management and, in his free time, he plays padel with his colleagues and likes to cycle along the river on Sundays.
-git push
+
 He manages the fleet day to day and is the person responsible for the maintenance tasks on the platform: he creates repair tasks when a vehicle has a problem, decides how urgent each one is, assigns it to a field technician and follows it until it is closed. He also registers new vehicles and makes sure each hub has enough of them. He works mostly at a desk, and needs a clear view of the whole fleet and of all open tasks at once.
 
 His work is evaluated by how quickly broken vehicles are fixed and how many vehicles are ready to use every day. Today he often finds out about problems only when a worker calls to complain, and he keeps track of repairs in spreadsheets and phone calls, so it is hard to know which tasks are late or who is working on each one.
@@ -49,7 +49,7 @@ His work is evaluated by how quickly broken vehicles are fixed and how many vehi
 <table>
 <tr>
 <td width="250" valign="top">
-<img src="pedro.jpg" alt="Pedro" width="250">
+<img src="personas-images/pedro.jpg" alt="Pedro" width="250">
 </td>
 <td valign="top">
 
@@ -65,22 +65,22 @@ Today he receives tasks by phone call or text message, often without details abo
 </tr>
 </table>
 
-**Box 4.** Secondary Persona: Francisca, a Client Manager.
+**Box 4.** Secondary Persona: Francisca, a Municipal System Administrator.
 
 <table>
 <tr>
 <td width="250" valign="top">
-<img src="francisca.jpg" alt="Francisca" width="250">
+<img src="personas-images/francisca.jpg" alt="Francisca" width="250">
 </td>
 <td valign="top">
 
-**Francisca** is a 49-year-old landscape architect and the head of the Green Spaces division of the municipality. She has two teenage children and, at weekends, she likes to walk in the city's parks, where she often notices what needs to be fixed.
+**Francisca** is a 49-year-old systems administrator responsible for managing the MovingTrees service within her municipality. She has a degree in Information Systems and, outside work, enjoys hiking and exploring new technologies.
 
-She signed the contract with MovingTrees and has to justify its cost to the city council. She decides which teams may use which vehicles, for how long, and how many vehicles each hub should have.
+She oversees how MovingTrees is configured and used by her municipality, ensuring that the platform reflects its specific needs. She manages local user accounts and permissions, defines usage policies, configures fleet restrictions and hub capacities, and monitors the municipality's fleet activity. She also follows operational indicators such as vehicle utilization, availability, maintenance times and service compliance, allowing her to assess whether the service meets the municipality's requirements.
 
-Every month she must report on how the service is going, but today she depends on what the operator tells her and on complaints from the teams. She has no reliable numbers on how much the fleet is used, how long repairs take or which teams use it most.
+As the municipality's needs evolve, keeping the platform aligned with its operations becomes increasingly challenging. Different teams may require different vehicle types, usage limits or access permissions, while the municipality must also justify the service's cost and effectiveness. She needs a centralized view of local activity and performance, with the ability to adjust configurations and identify operational issues.
 
-**Motivation:** Francisca would like to set clear rules for the use of the fleet and have up-to-date numbers on its use and repairs, so she can show the council that the service is worth its cost.
+**Motivation:** Francisca wants to manage MovingTrees according to her municipality's specific needs, maintaining control over users, fleet usage policies and hub configurations, while having reliable information about service utilization and performance to support decisions and demonstrate its value.
 
 </td>
 </tr>
