@@ -15,3 +15,4 @@ MovingTrees is a fleet-as-a-service platform that helps municipalities maintain 
 
 ## Hot Links
 - Jira: https://treelens-pei.atlassian.net/jira/software/projects/MT/boards/35/backlog
+- Figma: https://www.figma.com/design/gyrUJyVzN1sllOrNRCTQBR/Sem-t%C3%ADtulo?node-id=0-1&p=f&t=7QF2LMSXCVzl2o97-0
