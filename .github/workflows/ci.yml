@@ -18,24 +18,29 @@ jobs:
     name: Detect changes
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      contents: read
-      pull-requests: read
     outputs:
       frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
     steps:
       - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@d1c1ffe0248fe513906c8e24db8ea791d46f8590 # v3.0.3
-        id: filter
         with:
-          filters: |
-            frontend:
-              - 'frontend/**'
-              - '.github/workflows/ci.yml'
-            backend:
-              - 'backend/**'
-              - '.github/workflows/ci.yml'
+          fetch-depth: 0
+      - id: filter
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          frontend=false
+          backend=false
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$BASE_SHA" 2>/dev/null; then
+            frontend=true
+            backend=true
+          else
+            files=$(git diff --name-only "$BASE_SHA" HEAD)
+            echo "$files" | grep -qE '^(frontend/|\.github/workflows/ci\.yml$)' && frontend=true
+            echo "$files" | grep -qE '^(backend/|\.github/workflows/ci\.yml$)' && backend=true
+          fi
+          echo "frontend=$frontend" >> "$GITHUB_OUTPUT"
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
 
   frontend:
     name: Frontend
