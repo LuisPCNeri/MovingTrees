@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight, Plus, UserRoundCheck, type LucideIcon } from 'lucide-react'
+import { CalendarClock, ChevronDown, ChevronLeft, ChevronRight, Plus, UserRoundCheck, type LucideIcon } from 'lucide-react'
 import { AdminLayout } from '../../components/AdminLayout'
 import { FIELD } from '../../components/styles'
+import { StatusBadge } from '../../components/StatusBadge'
 import { listUsers, ROLE_LABELS, ROLES, type Page, type Role, type Status, type User } from '../../api/users'
 
 const PAGE_SIZE = 20
@@ -9,7 +10,7 @@ const STATS: { status: Status; label: string; icon: LucideIcon }[] = [
   { status: 'ACTIVE', label: 'Active users', icon: UserRoundCheck },
   { status: 'INACTIVE', label: 'Awaiting activation', icon: CalendarClock },
 ]
-const COLUMNS = ['Name', 'Username', 'Role', 'Team', 'Access']
+const COLUMNS = ['Name', 'Username', 'Role', 'Team', 'Access', 'Action']
 const CELL = 'px-5 py-3.5'
 
 interface Filters {
@@ -169,6 +170,11 @@ export function UsersPage() {
                       <td className={CELL}>
                         <StatusBadge status={u.status} />
                       </td>
+                      <td className={CELL}>
+                        <a href={`/admin/users/${u.id}`} className="font-semibold text-blue-700 hover:underline">
+                          Edit<span className="sr-only"> {u.name}</span>
+                        </a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -212,20 +218,5 @@ function PageButton(props: { label: string; icon: LucideIcon; disabled: boolean;
     >
       <Icon className="size-3.5" />
     </button>
-  )
-}
-
-function StatusBadge({ status }: { status: Status }) {
-  const active = status === 'ACTIVE'
-  const Icon = active ? Check : CalendarClock
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 ${
-        active ? 'bg-green-50 text-green-800' : 'bg-amber-50 text-amber-800 ring-1 ring-amber-200'
-      }`}
-    >
-      <Icon className="size-3" aria-hidden />
-      {active ? 'Active' : 'Inactive'}
-    </span>
   )
 }

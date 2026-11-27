@@ -56,10 +56,12 @@ export interface CreateUserRequest {
 // Backend ApiError: { message, fieldErrors }
 export class ApiError extends Error {
   readonly fieldErrors: Record<string, string>
+  readonly status: number
 
-  constructor(message: string, fieldErrors: Record<string, string> = {}) {
+  constructor(message: string, fieldErrors: Record<string, string> = {}, status = 0) {
     super(message)
     this.fieldErrors = fieldErrors
+    this.status = status
   }
 }
 
@@ -67,7 +69,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, init)
   if (!res.ok) {
     const body = await res.json().catch(() => null)
-    throw new ApiError(body?.message ?? `Request failed (${res.status})`, body?.fieldErrors)
+    throw new ApiError(body?.message ?? `Request failed (${res.status})`, body?.fieldErrors, res.status)
   }
   return res.json()
 }
@@ -80,6 +82,20 @@ export function listUsers(query: UserQuery, signal?: AbortSignal): Promise<Page<
   return request(`/users?${params}`, { signal })
 }
 
+const json = (method: string, body: unknown): RequestInit => ({
+  method,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body),
+})
+
 export function createUser(body: CreateUserRequest): Promise<User> {
-  return request('/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  return request('/users', json('POST', body))
+}
+
+export function getUser(id: string, signal?: AbortSignal): Promise<User> {
+  return request(`/users/${encodeURIComponent(id)}`, { signal })
+}
+
+export function updateUser(id: number, body: { role: Role; teamId: number }): Promise<User> {
+  return request(`/users/${id}`, json('PUT', body))
 }
