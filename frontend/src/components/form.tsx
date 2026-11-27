@@ -1,6 +1,5 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { ROLE_LABELS, ROLES } from '../api/users'
 import { FIELD } from './styles'
 
 export function Field(props: { label: string; required?: boolean; error?: string; hint?: string; wide?: boolean; children: ReactNode }) {
@@ -20,15 +19,15 @@ export function Field(props: { label: string; required?: boolean; error?: string
   )
 }
 
-/** Role dropdown; children go before the roles (e.g. an "All roles" option). */
-export function RoleSelect({ children, className = '', ...props }: ComponentProps<'select'>) {
+/** Dropdown with our field styling; children go before the options (e.g. an "All roles" placeholder). */
+export function Select({ options, children, className = '', ...props }: ComponentProps<'select'> & { options: [string, string][] }) {
   return (
     <span className="relative block">
       <select {...props} className={`appearance-none pr-9 pl-3 ${FIELD} ${className}`}>
         {children}
-        {ROLES.map((r) => (
-          <option key={r} value={r}>
-            {ROLE_LABELS[r]}
+        {options.map(([value, label]) => (
+          <option key={value} value={value}>
+            {label}
           </option>
         ))}
       </select>

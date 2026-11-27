@@ -19,6 +19,13 @@ export const ROLE_LABELS: Record<Role, string> = {
   PLATFORM_ADMIN: 'Platform admin',
 }
 
+export const ROLE_OPTIONS: [string, string][] = ROLES.map((r) => [r, ROLE_LABELS[r]])
+
+export interface Team {
+  id: number
+  name: string
+}
+
 export interface User {
   id: number
   name: string
@@ -108,4 +115,8 @@ export function updateUser(id: number, body: { role: Role; teamId: number }): Pr
 
 export function changeStatus(id: number, status: Status): Promise<User> {
   return request(`/users/${id}/status`, json('PATCH', { status }))
+}
+
+export function listTeams(signal?: AbortSignal): Promise<Team[]> {
+  return request('/teams', { signal })
 }

@@ -9,6 +9,7 @@ test('creates a user with the right payload and goes back to the list', async ({
       json: { id: 42, name: 'Paulo Reis', username: 'paulo@cm-aveiro.pt', role: 'FIELD_TECHNICIAN', status: 'INACTIVE', municipalityId: 1, teamId: 3 },
     })
   })
+  await page.route('**/api/teams', (route) => route.fulfill({ json: [{ id: 3, name: 'Pruning · Central' }] }))
   await page.route('**/api/users?*', (route) =>
     route.fulfill({ json: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0 } }),
   )
@@ -17,7 +18,7 @@ test('creates a user with the right payload and goes back to the list', async ({
   await page.getByLabel(/Full name/).fill('  Paulo Reis ')
   await page.getByLabel(/Work email/).fill('Paulo@CM-Aveiro.pt')
   await page.getByLabel(/Role/).selectOption('FIELD_TECHNICIAN')
-  await page.getByLabel(/Team ID/).fill('3')
+  await page.getByLabel(/Team/).selectOption({ label: 'Pruning · Central' })
   await page.getByLabel(/Temporary password/).fill('password123')
   await page.getByRole('button', { name: 'Create access' }).click()
 

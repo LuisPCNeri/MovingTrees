@@ -1,10 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { CalendarClock, ChevronLeft, ChevronRight, Plus, UserRoundCheck, type LucideIcon } from 'lucide-react'
 import { AdminLayout } from '../../components/AdminLayout'
-import { Field, RoleSelect } from '../../components/form'
+import { Field, Select } from '../../components/form'
 import { BUTTON_PRIMARY, FIELD } from '../../components/styles'
 import { StatusBadge } from '../../components/StatusBadge'
-import { listUsers, ROLE_LABELS, type Page, type Role, type Status, type User } from '../../api/users'
+import { useTeams } from '../../api/useTeams'
+import { listUsers, ROLE_LABELS, ROLE_OPTIONS, type Page, type Role, type Status, type User } from '../../api/users'
 
 const PAGE_SIZE = 20
 const STATS: { status: Status; label: string; icon: LucideIcon }[] = [
@@ -27,6 +28,7 @@ export function UsersPage() {
   const [data, setData] = useState<Page<User> | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [counts, setCounts] = useState<Record<Status, number> | null>(null)
+  const teams = useTeams()
 
   // any filter change goes back to the first page
   const updateFilters = (change: Partial<Filters>) => {
@@ -47,7 +49,6 @@ export function UsersPage() {
     // debounce so typing in the search box doesn't fire one request per key
     const t = setTimeout(() => {
       const { name, role, status } = filters
-      const teamId = Number(filters.teamId)
       listUsers(
         {
           page,
@@ -55,7 +56,7 @@ export function UsersPage() {
           name: name.trim(),
           role: role || undefined,
           status: status || undefined,
-          teamId: Number.isInteger(teamId) && teamId > 0 ? teamId : undefined,
+          teamId: filters.teamId ? Number(filters.teamId) : undefined,
         },
         ctrl.signal,
       )
@@ -124,22 +125,14 @@ export function UsersPage() {
           />
         </Field>
         <Field label="Role">
-          <RoleSelect value={filters.role} onChange={(e) => updateFilters({ role: e.target.value as Role | '' })}>
+          <Select options={ROLE_OPTIONS} value={filters.role} onChange={(e) => updateFilters({ role: e.target.value as Role | '' })}>
             <option value="">All roles</option>
-          </RoleSelect>
+          </Select>
         </Field>
-        {/* shortcut: no teams endpoint yet, swap for a team select once the backend lists teams */}
-        <Field label="Team ID">
-          <input
-            type="number"
-            min={1}
-            step={1}
-            inputMode="numeric"
-            value={filters.teamId}
-            onChange={(e) => updateFilters({ teamId: e.target.value })}
-            placeholder="All teams"
-            className={`px-3 ${FIELD}`}
-          />
+        <Field label="Team" error={teams.error ? 'Could not load teams.' : undefined}>
+          <Select options={teams.options} value={filters.teamId} onChange={(e) => updateFilters({ teamId: e.target.value })}>
+            <option value="">All teams</option>
+          </Select>
         </Field>
       </div>
 
@@ -174,8 +167,7 @@ export function UsersPage() {
                       <td className={CELL}>{u.name}</td>
                       <td className={`${CELL} break-all`}>{u.username}</td>
                       <td className={CELL}>{ROLE_LABELS[u.role] ?? u.role}</td>
-                      {/* shortcut: backend only exposes teamId, show the team name once a teams endpoint exists */}
-                      <td className={CELL}>Team #{u.teamId}</td>
+                      <td className={CELL}>{teams.nameOf(u.teamId)}</td>
                       <td className={CELL}>
                         <StatusBadge status={u.status} />
                       </td>

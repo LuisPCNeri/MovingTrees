@@ -1,9 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { AdminLayout } from '../../components/AdminLayout'
-import { Banner, Field, RoleSelect, UsersBreadcrumb } from '../../components/form'
+import { Banner, Field, Select, UsersBreadcrumb } from '../../components/form'
 import { StatusBadge } from '../../components/StatusBadge'
-import { BUTTON_PRIMARY, BUTTON_SECONDARY, FIELD } from '../../components/styles'
-import { changeStatus, getUser, updateUser, type ApiError, type Role, type Status, type User } from '../../api/users'
+import { BUTTON_PRIMARY, BUTTON_SECONDARY } from '../../components/styles'
+import { useTeams } from '../../api/useTeams'
+import { changeStatus, getUser, ROLE_OPTIONS, updateUser, type ApiError, type Role, type Status, type User } from '../../api/users'
 
 const CARD = 'mt-6 max-w-2xl rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6'
 const BUTTON_DANGER =
@@ -14,6 +15,7 @@ export function UserDetailPage({ id }: { id: string }) {
   const [loadError, setLoadError] = useState<ApiError | null>(null)
   const [role, setRole] = useState<Role | ''>('')
   const [teamId, setTeamId] = useState('')
+  const teams = useTeams()
   const [busy, setBusy] = useState<'save' | 'status' | null>(null)
   const [error, setError] = useState<ApiError | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
@@ -106,18 +108,14 @@ export function UserDetailPage({ id }: { id: string }) {
 
             <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
               <Field label="Role">
-                <RoleSelect value={role} onChange={(e) => edit(() => setRole(e.target.value as Role))} />
+                <Select options={ROLE_OPTIONS} value={role} onChange={(e) => edit(() => setRole(e.target.value as Role))} />
               </Field>
-              {/* shortcut: no teams endpoint yet, swap for a team select once the backend lists teams */}
-              <Field label="Team ID" error={error?.fieldErrors.teamId}>
-                <input
-                  type="number"
-                  min={1}
-                  step={1}
-                  inputMode="numeric"
+              <Field label="Team" error={error?.fieldErrors.teamId ?? (teams.error ? 'Could not load teams.' : undefined)}>
+                {/* the user's current team stays selectable even before the list arrives */}
+                <Select
+                  options={teams.teams ? teams.options : [[teamId, teams.nameOf(Number(teamId))]]}
                   value={teamId}
                   onChange={(e) => edit(() => setTeamId(e.target.value))}
-                  className={`px-3 ${FIELD}`}
                 />
               </Field>
             </div>

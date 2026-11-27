@@ -14,6 +14,9 @@ const USERS = Array.from({ length: 25 }, (_, i) => ({
 
 // Mimics GET /users: filters by role, status and teamId, then pages the result.
 async function mockUsersApi(page: Page) {
+  await page.route('**/api/teams', (route) =>
+    route.fulfill({ json: [{ id: 1, name: 'Pruning · Central' }, { id: 2, name: 'Cleaning · Botânico' }] }),
+  )
   await page.route('**/api/users?*', (route) => {
     const q = new URL(route.request().url()).searchParams
     const matches = USERS.filter(
@@ -38,7 +41,7 @@ async function mockUsersApi(page: Page) {
 
 const rows = (page: Page) => page.getByRole('table').locator('tbody tr')
 
-test('filters the table by role', async ({ page }) => {
+test('filters the table by role and team', async ({ page }) => {
   await mockUsersApi(page)
   await page.goto('/admin/users')
   await expect(rows(page)).toHaveCount(20)
@@ -50,6 +53,10 @@ test('filters the table by role', async ({ page }) => {
   await expect(page.getByText('8 records')).toBeVisible()
   await expect(rows(page)).toHaveCount(8)
   for (const role of await rows(page).locator('td:nth-child(3)').allTextContents()) expect(role).toBe('Fleet operator')
+
+  await page.getByLabel('Team').selectOption({ label: 'Cleaning · Botânico' })
+  await expect(page.getByText('4 records')).toBeVisible()
+  for (const team of await rows(page).locator('td:nth-child(4)').allTextContents()) expect(team).toBe('Cleaning · Botânico')
 })
 
 test('pages through the users', async ({ page }) => {

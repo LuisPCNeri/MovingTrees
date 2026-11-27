@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Check } from 'lucide-react'
 import { AdminLayout } from '../../components/AdminLayout'
-import { Banner, Field, RoleSelect, UsersBreadcrumb } from '../../components/form'
+import { Banner, Field, Select, UsersBreadcrumb } from '../../components/form'
 import { BUTTON_PRIMARY, BUTTON_SECONDARY, FIELD } from '../../components/styles'
-import { ApiError, createUser, ROLE_LABELS, type Role } from '../../api/users'
+import { useTeams } from '../../api/useTeams'
+import { ApiError, createUser, ROLE_LABELS, ROLE_OPTIONS, type Role } from '../../api/users'
 
 // Copy from the Figma "Create access" screen; only Field agent is specified there so far.
 const ROLE_PERMISSIONS: Partial<Record<Role, string[]>> = {
@@ -15,6 +16,8 @@ const PASSWORD_MAX = 72
 
 export function NewUserPage() {
   const [role, setRole] = useState<Role | ''>('')
+  const [teamId, setTeamId] = useState('')
+  const teams = useTeams()
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<ApiError | null>(null)
 
@@ -68,7 +71,8 @@ export function NewUserPage() {
               <input name="email" type="email" required maxLength={255} autoComplete="off" className={`px-3 ${FIELD}`} />
             </Field>
             <Field label="Role" required error={fieldError('role')}>
-              <RoleSelect
+              <Select
+                options={ROLE_OPTIONS}
                 name="role"
                 required
                 value={role}
@@ -78,11 +82,21 @@ export function NewUserPage() {
                 <option value="" disabled>
                   Select a role
                 </option>
-              </RoleSelect>
+              </Select>
             </Field>
-            {/* shortcut: no teams endpoint yet, swap for a team select once the backend lists teams */}
-            <Field label="Team ID" required error={fieldError('teamId')}>
-              <input name="teamId" type="number" required min={1} step={1} inputMode="numeric" className={`px-3 ${FIELD}`} />
+            <Field label="Team" required error={fieldError('teamId') ?? (teams.error ? 'Could not load teams.' : undefined)}>
+              <Select
+                options={teams.options}
+                name="teamId"
+                required
+                value={teamId}
+                onChange={(e) => setTeamId(e.target.value)}
+                className={teamId ? '' : 'text-slate-500'}
+              >
+                <option value="" disabled>
+                  {teams.teams ? 'Select a team' : 'Loading teams…'}
+                </option>
+              </Select>
             </Field>
             <Field
               label="Temporary password"
