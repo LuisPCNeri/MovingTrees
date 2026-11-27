@@ -1,5 +1,6 @@
 class TelemetryGenerator:
     event_type = None
+    publishes_every_tick = True
 
     def __init__(self, publisher):
         self.publisher = publisher

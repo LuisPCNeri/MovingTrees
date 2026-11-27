@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 from simulator.config import SimulatorConfig
 from simulator.generators.battery import BatteryGenerator
 from simulator.generators.gps import GPSGenerator
+from simulator.generators.lock import LockGenerator
 from simulator.publisher import TelemetryPublisher
 from simulator.registry import load_vehicles
 from simulator.routes import load_hub_locations
@@ -41,7 +42,8 @@ def run(
         publisher,
         speed_meters_per_second=gps_generator.speed_meters_per_second,
     )
-    generators = [gps_generator, battery_generator]
+    lock_generator = LockGenerator(publisher)
+    generators = [gps_generator, battery_generator, lock_generator]
     gps_states = {}
 
     stopped = threading.Event()
@@ -49,7 +51,10 @@ def run(
     signal.signal(signal.SIGINT, lambda *_: stopped.set())
 
     interval = 1 / config.publish_rate
-    elapsed_seconds = config.vehicle_count * len(generators) / config.publish_rate
+    periodic_generators = sum(
+        generator.publishes_every_tick for generator in generators
+    )
+    elapsed_seconds = config.vehicle_count * periodic_generators / config.publish_rate
     next_publish = time.monotonic()
     vehicle_index = 0
     generator_index = 0
@@ -68,14 +73,14 @@ def run(
             )
             if generator is gps_generator:
                 gps_states[vehicle.serial] = event_data
+            if event_data is not None:
+                next_publish += interval
+                if next_publish < time.monotonic():
+                    next_publish = time.monotonic() + interval
             generator_index += 1
             if generator_index == len(generators):
                 generator_index = 0
                 vehicle_index = (vehicle_index + 1) % len(vehicles)
-            next_publish += interval
-
-            if next_publish < time.monotonic():
-                next_publish = time.monotonic() + interval
     finally:
         publisher.close()
 

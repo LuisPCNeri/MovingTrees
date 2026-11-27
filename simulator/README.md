@@ -25,7 +25,8 @@ change the publisher password, update `mosquitto/passwd` to match.
 
 GPS advances at 4 m/s and dwells at each hub for 60 seconds. Battery starts at a
 seedable random level from 50–100%, drains 2 percentage points per kilometre
-while moving, and charges 0.02 points per second while at a hub.
+while moving, and charges 0.02 points per second while at a hub. Vehicles start
+locked, unlock when movement begins, and lock once when arriving at a hub.
 
 Run tests with `python -m pytest`. The MQTT integration test requires Docker
 Compose and uses a temporary Mosquitto service.

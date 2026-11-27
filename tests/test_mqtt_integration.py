@@ -97,7 +97,7 @@ def collect_run(vehicle_count, mosquitto):
 
     try:
         started = time.monotonic()
-        time.sleep(6)
+        time.sleep(8)
         process.terminate()
         _, stderr = process.communicate(timeout=5)
         assert process.returncode == 0, stderr
@@ -114,10 +114,11 @@ def collect_run(vehicle_count, mosquitto):
 
     timestamps = [timestamp for timestamp, _, _ in received if timestamp >= started]
     vehicle_ids = {payload["vehicle_id"] for _, _, payload in received}
+    event_types = {payload["event_type"] for _, _, payload in received}
     for _, topic, payload in received:
         SCHEMA_VALIDATOR.validate(payload)
         assert topic == f"telemetry/{payload['municipality']}/{payload['vehicle_id']}"
-    return timestamps, vehicle_ids
+    return timestamps, vehicle_ids, event_types
 
 
 def test_unauthorized_client_is_rejected(mosquitto):
@@ -139,11 +140,13 @@ def test_unauthorized_client_is_rejected(mosquitto):
 
 
 def test_configured_rate_and_fleet_size_apply_after_restart(mosquitto):
-    first_run, first_fleet = collect_run(10, mosquitto)
-    second_run, second_fleet = collect_run(20, mosquitto)
+    first_run, first_fleet, first_types = collect_run(10, mosquitto)
+    second_run, second_fleet, second_types = collect_run(20, mosquitto)
 
-    assert len(first_run) == pytest.approx(48, rel=0.25)
+    assert len(first_run) == pytest.approx(64, rel=0.25)
     assert first_fleet == set(REGISTERED_SERIALS[:10])
-    assert len(second_run) == pytest.approx(48, rel=0.25)
+    assert first_types == {"gps", "battery", "lock"}
+    assert len(second_run) == pytest.approx(64, rel=0.25)
     assert second_fleet == set(REGISTERED_SERIALS[:20])
+    assert second_types == {"gps", "battery", "lock"}
     assert first_fleet | second_fleet <= set(REGISTERED_SERIALS)
