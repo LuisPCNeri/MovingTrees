@@ -1,9 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { CalendarClock, ChevronDown, ChevronLeft, ChevronRight, Plus, UserRoundCheck, type LucideIcon } from 'lucide-react'
+import { CalendarClock, ChevronLeft, ChevronRight, Plus, UserRoundCheck, type LucideIcon } from 'lucide-react'
 import { AdminLayout } from '../../components/AdminLayout'
-import { FIELD } from '../../components/styles'
+import { Field, RoleSelect } from '../../components/form'
+import { BUTTON_PRIMARY, FIELD } from '../../components/styles'
 import { StatusBadge } from '../../components/StatusBadge'
-import { listUsers, ROLE_LABELS, ROLES, type Page, type Role, type Status, type User } from '../../api/users'
+import { listUsers, ROLE_LABELS, type Page, type Role, type Status, type User } from '../../api/users'
 
 const PAGE_SIZE = 20
 const STATS: { status: Status; label: string; icon: LucideIcon }[] = [
@@ -77,10 +78,7 @@ export function UsersPage() {
           <h1 className="text-3xl font-bold tracking-tight">People who move the city</h1>
           <p className="mt-3 text-sm text-slate-600">Manage access, roles and teams for municipal operations.</p>
         </div>
-        <a
-          href="/admin/users/new"
-          className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-white hover:bg-forest"
-        >
+        <a href="/admin/users/new" className={BUTTON_PRIMARY}>
           <Plus className="size-4" aria-hidden />
           Create user
         </a>
@@ -116,37 +114,22 @@ export function UsersPage() {
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
-        <label className="text-xs font-medium text-slate-700">
-          Search people
+        <Field label="Search people">
           <input
             type="search"
             value={filters.name}
             onChange={(e) => updateFilters({ name: e.target.value })}
             placeholder="Name…"
-            className={`mt-1.5 block px-3 ${FIELD}`}
+            className={`px-3 ${FIELD}`}
           />
-        </label>
-        <label className="text-xs font-medium text-slate-700">
-          Role
-          <span className="relative mt-1.5 block">
-            <select
-              value={filters.role}
-              onChange={(e) => updateFilters({ role: e.target.value as Role | '' })}
-              className={`appearance-none pr-9 pl-3 ${FIELD}`}
-            >
-              <option value="">All roles</option>
-              {ROLES.map((r) => (
-                <option key={r} value={r}>
-                  {ROLE_LABELS[r]}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-slate-500" aria-hidden />
-          </span>
-        </label>
+        </Field>
+        <Field label="Role">
+          <RoleSelect value={filters.role} onChange={(e) => updateFilters({ role: e.target.value as Role | '' })}>
+            <option value="">All roles</option>
+          </RoleSelect>
+        </Field>
         {/* shortcut: no teams endpoint yet, swap for a team select once the backend lists teams */}
-        <label className="text-xs font-medium text-slate-700">
-          Team ID
+        <Field label="Team ID">
           <input
             type="number"
             min={1}
@@ -155,9 +138,9 @@ export function UsersPage() {
             value={filters.teamId}
             onChange={(e) => updateFilters({ teamId: e.target.value })}
             placeholder="All teams"
-            className={`mt-1.5 block px-3 ${FIELD}`}
+            className={`px-3 ${FIELD}`}
           />
-        </label>
+        </Field>
       </div>
 
       <section className="mt-7 rounded-xl border border-slate-200 bg-white shadow-sm">

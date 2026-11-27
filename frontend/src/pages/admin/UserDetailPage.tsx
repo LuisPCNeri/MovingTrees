@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { ChevronDown } from 'lucide-react'
 import { AdminLayout } from '../../components/AdminLayout'
+import { Banner, Field, RoleSelect, UsersBreadcrumb } from '../../components/form'
 import { StatusBadge } from '../../components/StatusBadge'
-import { FIELD } from '../../components/styles'
-import { ApiError, getUser, ROLE_LABELS, ROLES, updateUser, type Role, type User } from '../../api/users'
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, FIELD } from '../../components/styles'
+import { getUser, updateUser, type ApiError, type Role, type User } from '../../api/users'
 
 export function UserDetailPage({ id }: { id: string }) {
   const [user, setUser] = useState<User | null>(null)
@@ -24,7 +24,7 @@ export function UserDetailPage({ id }: { id: string }) {
     const ctrl = new AbortController()
     getUser(id, ctrl.signal)
       .then(load)
-      .catch((e: Error) => e.name !== 'AbortError' && setLoadError(e instanceof ApiError ? e : new ApiError(e.message)))
+      .catch((e: ApiError) => e.name !== 'AbortError' && setLoadError(e))
     return () => ctrl.abort()
   }, [id])
 
@@ -42,7 +42,7 @@ export function UserDetailPage({ id }: { id: string }) {
       load(await updateUser(user.id, { role, teamId: team }))
       setSaved(true)
     } catch (err) {
-      setSaveError(err instanceof ApiError ? err : new ApiError('Could not reach the server. Try again.'))
+      setSaveError(err as ApiError)
     } finally {
       setSaving(false)
     }
@@ -55,13 +55,7 @@ export function UserDetailPage({ id }: { id: string }) {
   return (
     <AdminLayout active="Users" breadcrumb="Municipality / Users">
       <h1 className="text-3xl font-bold tracking-tight break-words">{title}</h1>
-      <nav aria-label="Breadcrumb" className="mt-3 text-sm text-slate-600">
-        <a href="/admin/users" className="hover:text-brand hover:underline">
-          Users
-        </a>
-        <span aria-hidden> / </span>
-        <span aria-current="page">{user?.name ?? id}</span>
-      </nav>
+      <UsersBreadcrumb current={user?.name ?? id} />
 
       {loadError ? (
         <div role="alert" className="mt-6 max-w-2xl rounded-xl border border-slate-200 bg-white p-6 text-sm shadow-sm">
@@ -82,41 +76,21 @@ export function UserDetailPage({ id }: { id: string }) {
           </div>
           <p className="mt-2 text-sm break-all text-slate-600">{user.username}</p>
 
-          {saveError && (
-            <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-              {saveError.message}
-            </p>
-          )}
-          {saved && (
-            <p role="status" className="mt-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
-              Changes saved. They apply at the user's next sign-in.
-            </p>
-          )}
+          {saveError && <Banner tone="error">{saveError.message}</Banner>}
+          {saved && <Banner tone="success">Changes saved. They apply at the user's next sign-in.</Banner>}
 
           <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
-            <label className="text-xs font-medium text-slate-700">
-              <span className="mb-1.5 block">Role</span>
-              <span className="relative block">
-                <select
-                  value={role}
-                  onChange={(e) => {
-                    setRole(e.target.value as Role)
-                    setSaved(false)
-                  }}
-                  className={`appearance-none pr-9 pl-3 ${FIELD}`}
-                >
-                  {ROLES.map((r) => (
-                    <option key={r} value={r}>
-                      {ROLE_LABELS[r]}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-slate-500" aria-hidden />
-              </span>
-            </label>
+            <Field label="Role">
+              <RoleSelect
+                value={role}
+                onChange={(e) => {
+                  setRole(e.target.value as Role)
+                  setSaved(false)
+                }}
+              />
+            </Field>
             {/* shortcut: no teams endpoint yet, swap for a team select once the backend lists teams */}
-            <label className="text-xs font-medium text-slate-700">
-              <span className="mb-1.5 block">Team ID</span>
+            <Field label="Team ID" error={saveError?.fieldErrors.teamId}>
               <input
                 type="number"
                 min={1}
@@ -129,22 +103,14 @@ export function UserDetailPage({ id }: { id: string }) {
                 }}
                 className={`px-3 ${FIELD}`}
               />
-              {saveError?.fieldErrors.teamId && <span className="mt-1.5 block font-normal text-red-700">{saveError.fieldErrors.teamId}</span>}
-            </label>
+            </Field>
           </div>
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <button
-              type="submit"
-              disabled={unchanged || invalid || saving}
-              className="h-10 min-w-36 rounded-lg bg-brand px-6 text-sm font-semibold text-white transition-colors hover:bg-forest focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-brand"
-            >
+            <button type="submit" disabled={unchanged || invalid || saving} className={BUTTON_PRIMARY}>
               {saving ? 'Saving…' : 'Save changes'}
             </button>
-            <a
-              href="/admin/users"
-              className="inline-flex h-10 min-w-28 items-center justify-center rounded-lg border border-slate-500 bg-white px-6 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
-            >
+            <a href="/admin/users" className={BUTTON_SECONDARY}>
               Back
             </a>
           </div>

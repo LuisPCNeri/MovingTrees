@@ -67,7 +67,10 @@ export class ApiError extends Error {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`/api${path}`, init)
+  const res = await fetch(`/api${path}`, init).catch((e: Error) => {
+    if (e.name === 'AbortError') throw e
+    throw new ApiError('Could not reach the server. Try again.')
+  })
   // the backend answers 403 to anyone who is not a municipal administrator
   if (res.status === 403) location.replace('/forbidden')
   if (!res.ok) {
