@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -111,6 +112,60 @@ class UsersControllerIT extends PostgresIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json("Ana", "duplicate.api", "password123", "FIELD_WORKER", teamId, null)))
                 .andExpect(status().isConflict());
+    }
+
+    //GET /users devolve página 200 com os utilizadores do município da sessão
+    @Test
+    void listsUsersWithDefaultPaging() throws Exception {
+        long municipalityId = municipality(jdbc, "api-list-a");
+        long teamId = team(jdbc, municipalityId, "parks-api-list");
+        user(jdbc, municipalityId, teamId, "Ana", "ana.list", "FIELD_WORKER", "ACTIVE");
+        user(jdbc, municipalityId, teamId, "Bruno", "bruno.list", "FLEET_OPERATOR", "INACTIVE");
+
+        mockMvc.perform(get("/users")
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, municipalityId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.content[0].municipalityId").value(municipalityId));
+    }
+
+    //passa, município sem utilizadores devolve página vazia com 200
+    @Test
+    void returnsEmptyPage() throws Exception {
+        long municipalityId = municipality(jdbc, "api-list-empty");
+
+        mockMvc.perform(get("/users")
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, municipalityId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(0))
+                .andExpect(jsonPath("$.totalElements").value(0));
+    }
+
+    //paginação inválida deve devolver 400
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidPaging")
+    void rejectsInvalidPaging(String description, String param, String value) throws Exception {
+        mockMvc.perform(get("/users")
+                .param(param, value)
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, 1L)))
+                .andExpect(status().isBadRequest());
+    }
+
+    //falha, sessão sem role de administrador municipal deve receber 403
+    @Test
+    void rejectsListForNonAdministrator() throws Exception {
+        mockMvc.perform(get("/users")
+                .session(session(AppUserRole.FIELD_WORKER, 1L)))
+                .andExpect(status().isForbidden());
+    }
+
+    private static Stream<Arguments> invalidPaging() {
+        return Stream.of(
+                Arguments.of("negative page", "page", "-1"),
+                Arguments.of("zero size", "size", "0"),
+                Arguments.of("size above limit", "size", "101"),
+                Arguments.of("non numeric page", "page", "abc"));
     }
 
     private static Stream<Arguments> invalidPayloads() {

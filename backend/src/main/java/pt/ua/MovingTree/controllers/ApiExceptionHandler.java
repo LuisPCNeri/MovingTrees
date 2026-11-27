@@ -9,9 +9,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import pt.ua.MovingTree.dtos.ApiError;
 import pt.ua.MovingTree.exceptions.DuplicateUsernameException;
 import pt.ua.MovingTree.exceptions.ForbiddenOperationException;
+import pt.ua.MovingTree.exceptions.InvalidPagingException;
 import pt.ua.MovingTree.exceptions.TeamNotInMunicipalityException;
 
 @RestControllerAdvice
@@ -29,6 +31,18 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleUnreadableBody() {
         return ApiError.of("Invalid request body");
+    }
+
+    @ExceptionHandler(InvalidPagingException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleInvalidPaging(InvalidPagingException exception) {
+        return ApiError.of(exception.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleInvalidParameter() {
+        return ApiError.of("Invalid request parameter");
     }
 
     @ExceptionHandler(TeamNotInMunicipalityException.class)

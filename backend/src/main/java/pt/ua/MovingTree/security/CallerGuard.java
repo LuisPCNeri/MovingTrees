@@ -14,7 +14,7 @@ public class CallerGuard {
 
     public Long requireMunicipalAdministrator() {
         if (callerContext.role() != AppUserRole.MUNICIPAL_ADMINISTRATOR || callerContext.municipalityId() == null) {
-            throw new ForbiddenOperationException("Only municipal administrators can register users");
+            throw new ForbiddenOperationException("Only municipal administrators can access this operation");
         }
         return callerContext.municipalityId();
     }
