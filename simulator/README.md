@@ -23,5 +23,9 @@ development-only MQTT credentials (`simulator` / `demo-simulator-password`
 for publishing and `viewer` / `demo-viewer-password` for subscribing). If you
 change the publisher password, update `mosquitto/passwd` to match.
 
+GPS advances at 4 m/s and dwells at each hub for 60 seconds. Battery starts at a
+seedable random level from 50–100%, drains 2 percentage points per kilometre
+while moving, and charges 0.02 points per second while at a hub.
+
 Run tests with `python -m pytest`. The MQTT integration test requires Docker
 Compose and uses a temporary Mosquitto service.

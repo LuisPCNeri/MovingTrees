@@ -97,7 +97,7 @@ def collect_run(vehicle_count, mosquitto):
 
     try:
         started = time.monotonic()
-        time.sleep(4)
+        time.sleep(6)
         process.terminate()
         _, stderr = process.communicate(timeout=5)
         assert process.returncode == 0, stderr
@@ -142,8 +142,8 @@ def test_configured_rate_and_fleet_size_apply_after_restart(mosquitto):
     first_run, first_fleet = collect_run(10, mosquitto)
     second_run, second_fleet = collect_run(20, mosquitto)
 
-    assert len(first_run) == pytest.approx(32, rel=0.25)
+    assert len(first_run) == pytest.approx(48, rel=0.25)
     assert first_fleet == set(REGISTERED_SERIALS[:10])
-    assert len(second_run) == pytest.approx(32, rel=0.25)
+    assert len(second_run) == pytest.approx(48, rel=0.25)
     assert second_fleet == set(REGISTERED_SERIALS[:20])
     assert first_fleet | second_fleet <= set(REGISTERED_SERIALS)

@@ -7,15 +7,24 @@ class GPSGenerator(TelemetryGenerator):
     event_type = "gps"
     EARTH_RADIUS_METERS = 6_371_000
 
-    def __init__(self, publisher, hub_locations, speed_meters_per_second=4.0):
+    def __init__(
+        self,
+        publisher,
+        hub_locations,
+        speed_meters_per_second=4.0,
+        hub_dwell_seconds=60.0,
+    ):
         super().__init__(publisher)
         if not math.isfinite(speed_meters_per_second) or speed_meters_per_second <= 0:
             raise ValueError("GPS speed must be a positive finite number")
+        if not math.isfinite(hub_dwell_seconds) or hub_dwell_seconds < 0:
+            raise ValueError("Hub dwell time must be a non-negative finite number")
         self.hub_locations = hub_locations
         self.speed_meters_per_second = speed_meters_per_second
+        self.hub_dwell_seconds = hub_dwell_seconds
         self.states = {}
 
-    def tick(self, vehicle, elapsed_seconds=1.0):
+    def tick(self, vehicle, elapsed_seconds=1.0, context=None):
         if not math.isfinite(elapsed_seconds) or elapsed_seconds <= 0:
             raise ValueError("Elapsed time must be a positive finite number")
 
@@ -23,6 +32,21 @@ class GPSGenerator(TelemetryGenerator):
         if state is None:
             state = self._initial_state(vehicle)
             self.states[vehicle.serial] = state
+
+        if state["dwell_remaining"] > 0:
+            state["dwell_remaining"] = max(
+                0.0,
+                state["dwell_remaining"] - elapsed_seconds,
+            )
+            location = self._location(vehicle.municipality, state["origin"])
+            data = {
+                "latitude": location.latitude,
+                "longitude": location.longitude,
+                "hub_id": state["origin"],
+                "moving": False,
+            }
+            self._publish(vehicle, data)
+            return data
 
         origin = self._location(vehicle.municipality, state["origin"])
         destination = self._location(vehicle.municipality, state["destination"])
@@ -51,6 +75,7 @@ class GPSGenerator(TelemetryGenerator):
                 state["destination"],
             )
             state["progress"] = 0.0
+            state["dwell_remaining"] = self.hub_dwell_seconds
         else:
             state["progress"] = progress
 
@@ -62,6 +87,7 @@ class GPSGenerator(TelemetryGenerator):
             "origin": vehicle.hub,
             "destination": self._next_hub(vehicle.municipality, vehicle.hub),
             "progress": 0.0,
+            "dwell_remaining": 0.0,
         }
 
     def _next_hub(self, municipality, current_hub):

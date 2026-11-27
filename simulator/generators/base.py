@@ -4,7 +4,7 @@ class TelemetryGenerator:
     def __init__(self, publisher):
         self.publisher = publisher
 
-    def tick(self, vehicle, elapsed_seconds=1.0):
+    def tick(self, vehicle, elapsed_seconds=1.0, context=None):
         raise NotImplementedError
 
     def _publish(self, vehicle, data):

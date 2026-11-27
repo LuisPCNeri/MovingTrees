@@ -96,7 +96,12 @@ def test_no_teleporting_between_ticks(publisher, vehicle):
 
 
 def test_arrival_and_return_route_are_continuous(publisher, vehicle):
-    generator = GPSGenerator(publisher, ROUTE, speed_meters_per_second=100)
+    generator = GPSGenerator(
+        publisher,
+        ROUTE,
+        speed_meters_per_second=100,
+        hub_dwell_seconds=0,
+    )
 
     for _ in range(10):
         arrived = generator.tick(vehicle)
@@ -114,3 +119,23 @@ def test_arrival_and_return_route_are_continuous(publisher, vehicle):
         HubLocation(returned["latitude"], returned["longitude"]),
     )
     assert 0 < distance <= 100 + 1e-6
+
+
+def test_hub_dwell_keeps_reporting_arrival_hub(publisher, vehicle):
+    generator = GPSGenerator(
+        publisher,
+        ROUTE,
+        speed_meters_per_second=100,
+        hub_dwell_seconds=20,
+    )
+
+    arrived = generator.tick(vehicle, elapsed_seconds=10)
+    first_dwell_tick = generator.tick(vehicle, elapsed_seconds=10)
+    final_dwell_tick = generator.tick(vehicle, elapsed_seconds=10)
+    departure = generator.tick(vehicle)
+
+    assert arrived["hub_id"] == "botanical-hub"
+    assert first_dwell_tick["hub_id"] == "botanical-hub"
+    assert final_dwell_tick["hub_id"] == "botanical-hub"
+    assert departure["hub_id"] is None
+    assert departure["moving"] is True

@@ -7,6 +7,7 @@ import time
 import paho.mqtt.client as mqtt
 
 from simulator.config import SimulatorConfig
+from simulator.generators.battery import BatteryGenerator
 from simulator.generators.gps import GPSGenerator
 from simulator.publisher import TelemetryPublisher
 from simulator.registry import load_vehicles
@@ -36,14 +37,22 @@ def run(
     )
     publisher.connect()
     gps_generator = GPSGenerator(publisher, hub_locations)
+    battery_generator = BatteryGenerator(
+        publisher,
+        speed_meters_per_second=gps_generator.speed_meters_per_second,
+    )
+    generators = [gps_generator, battery_generator]
+    gps_states = {}
 
     stopped = threading.Event()
     signal.signal(signal.SIGTERM, lambda *_: stopped.set())
     signal.signal(signal.SIGINT, lambda *_: stopped.set())
 
     interval = 1 / config.publish_rate
+    elapsed_seconds = config.vehicle_count * len(generators) / config.publish_rate
     next_publish = time.monotonic()
     vehicle_index = 0
+    generator_index = 0
     try:
         while not stopped.is_set():
             delay = next_publish - time.monotonic()
@@ -51,11 +60,18 @@ def run(
                 break
 
             vehicle = vehicles[vehicle_index]
-            gps_generator.tick(
+            generator = generators[generator_index]
+            event_data = generator.tick(
                 vehicle,
-                elapsed_seconds=config.vehicle_count / config.publish_rate,
+                elapsed_seconds=elapsed_seconds,
+                context={"gps": gps_states.get(vehicle.serial)},
             )
-            vehicle_index = (vehicle_index + 1) % len(vehicles)
+            if generator is gps_generator:
+                gps_states[vehicle.serial] = event_data
+            generator_index += 1
+            if generator_index == len(generators):
+                generator_index = 0
+                vehicle_index = (vehicle_index + 1) % len(vehicles)
             next_publish += interval
 
             if next_publish < time.monotonic():
