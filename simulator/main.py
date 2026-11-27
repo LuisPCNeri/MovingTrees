@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import signal
@@ -8,17 +7,24 @@ import time
 import paho.mqtt.client as mqtt
 
 from simulator.config import SimulatorConfig
+from simulator.publisher import TelemetryPublisher
 from simulator.registry import load_vehicles
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def run(config, broker_host, broker_port, vehicles):
+def run(config, broker_host, broker_port, vehicles, mqtt_username, mqtt_password):
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.enable_logger(logger)
-    client.connect(broker_host, broker_port)
-    client.loop_start()
+    publisher = TelemetryPublisher(
+        client,
+        broker_host,
+        broker_port,
+        username=mqtt_username,
+        password=mqtt_password,
+    )
+    publisher.connect()
 
     stopped = threading.Event()
     signal.signal(signal.SIGTERM, lambda *_: stopped.set())
@@ -34,17 +40,10 @@ def run(config, broker_host, broker_port, vehicles):
                 break
 
             vehicle = vehicles[vehicle_index]
-            payload = json.dumps(
-                {
-                    "vehicle_id": vehicle.serial,
-                    "event": "heartbeat",
-                    "timestamp": time.time(),
-                }
-            )
-            client.publish(
-                f"simulator/vehicles/{vehicle.serial}",
-                payload,
-                qos=0,
+            publisher.publish(
+                vehicle,
+                "heartbeat",
+                {},
             )
             vehicle_index = (vehicle_index + 1) % len(vehicles)
             next_publish += interval
@@ -52,8 +51,7 @@ def run(config, broker_host, broker_port, vehicles):
             if next_publish < time.monotonic():
                 next_publish = time.monotonic() + interval
     finally:
-        client.disconnect()
-        client.loop_stop()
+        publisher.close()
 
 
 def main():
@@ -70,10 +68,19 @@ def main():
         broker_port = int(os.getenv("MQTT_PORT", "1883"))
         if not 1 <= broker_port <= 65535:
             raise ValueError("MQTT_PORT must be between 1 and 65535")
+        mqtt_username = os.getenv("MQTT_USERNAME", "simulator")
+        mqtt_password = os.getenv("MQTT_PASSWORD", "demo-simulator-password")
     except ValueError as error:
         raise SystemExit(str(error)) from error
 
-    run(config, broker_host, broker_port, vehicles)
+    run(
+        config,
+        broker_host,
+        broker_port,
+        vehicles,
+        mqtt_username,
+        mqtt_password,
+    )
 
 
 if __name__ == "__main__":

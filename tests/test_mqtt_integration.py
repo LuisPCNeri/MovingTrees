@@ -10,6 +10,7 @@ from pathlib import Path
 
 import paho.mqtt.client as mqtt
 import pytest
+from jsonschema import Draft202012Validator, FormatChecker
 
 from simulator.config import SimulatorConfig
 from simulator.registry import load_vehicles
@@ -19,6 +20,11 @@ ROOT = Path(__file__).resolve().parents[1]
 REGISTERED_SERIALS = [
     vehicle.serial for vehicle in load_vehicles(SimulatorConfig().vehicles_file)
 ]
+SCHEMA_PATH = ROOT / "schemas" / "telemetry-event.schema.json"
+SCHEMA_VALIDATOR = Draft202012Validator(
+    json.loads(SCHEMA_PATH.read_text(encoding="utf-8")),
+    format_checker=FormatChecker(),
+)
 
 
 @pytest.fixture(scope="module")
@@ -57,13 +63,14 @@ def collect_run(vehicle_count, mosquitto):
 
     def on_connect(client, userdata, flags, reason_code, properties):
         if reason_code == 0:
-            client.subscribe("simulator/vehicles/#")
+            client.subscribe("telemetry/#")
             connected.set()
 
     def on_message(client, userdata, message):
         messages.put((time.monotonic(), message.topic, json.loads(message.payload)))
 
     subscriber = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    subscriber.username_pw_set("viewer", "demo-viewer-password")
     subscriber.on_connect = on_connect
     subscriber.on_message = on_message
     subscriber.connect("127.0.0.1", 1883)
@@ -76,6 +83,8 @@ def collect_run(vehicle_count, mosquitto):
         VEHICLE_COUNT=str(vehicle_count),
         MQTT_HOST="127.0.0.1",
         MQTT_PORT="1883",
+        MQTT_USERNAME="simulator",
+        MQTT_PASSWORD="demo-simulator-password",
     )
     process = subprocess.Popen(
         [sys.executable, "-m", "simulator"],
@@ -105,7 +114,28 @@ def collect_run(vehicle_count, mosquitto):
 
     timestamps = [timestamp for timestamp, _, _ in received if timestamp >= started]
     vehicle_ids = {payload["vehicle_id"] for _, _, payload in received}
+    for _, topic, payload in received:
+        SCHEMA_VALIDATOR.validate(payload)
+        assert topic == f"telemetry/{payload['municipality']}/{payload['vehicle_id']}"
     return timestamps, vehicle_ids
+
+
+def test_unauthorized_client_is_rejected(mosquitto):
+    response = queue.Queue(maxsize=1)
+
+    def on_connect(client, userdata, flags, reason_code, properties):
+        response.put(reason_code == 0)
+
+    client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+    client.username_pw_set("unauthorized", "incorrect-password")
+    client.on_connect = on_connect
+    client.connect("127.0.0.1", 1883)
+    client.loop_start()
+    try:
+        assert response.get(timeout=5) is False
+    finally:
+        client.disconnect()
+        client.loop_stop()
 
 
 def test_configured_rate_and_fleet_size_apply_after_restart(mosquitto):

@@ -5,6 +5,8 @@ services:
       - "1883:1883"
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/passwd:/mosquitto/config/passwd:ro
+      - ./mosquitto/acl:/mosquitto/config/acl:ro
     restart: unless-stopped
 
   simulator:
@@ -15,6 +17,8 @@ services:
       VEHICLES_FILE: /data/vehicles.json
       MQTT_HOST: broker
       MQTT_PORT: 1883
+      MQTT_USERNAME: simulator
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-demo-simulator-password}
     volumes:
       - ${VEHICLES_FILE:-./simulator/vehicles.json}:/data/vehicles.json:ro
     depends_on:

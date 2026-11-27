@@ -15,5 +15,11 @@ Each vehicle entry must contain non-empty string fields `serial`,
 the number of entries in the seed file. In the container, the file is mounted
 at `/data/vehicles.json`.
 
+Events use `telemetry/<municipality>/<serial>` and are validated against
+`schemas/telemetry-event.schema.json` before publishing. The Compose setup uses
+development-only MQTT credentials (`simulator` / `demo-simulator-password`
+for publishing and `viewer` / `demo-viewer-password` for subscribing). If you
+change the publisher password, update `mosquitto/passwd` to match.
+
 Run tests with `python -m pytest`. The MQTT integration test requires Docker
 Compose and uses a temporary Mosquitto service.
