@@ -1,6 +1,7 @@
 package pt.ua.MovingTree.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static pt.ua.MovingTree.support.IdentityTestData.municipality;
@@ -19,6 +20,7 @@ import pt.ua.MovingTree.dtos.UserFilter;
 import pt.ua.MovingTree.dtos.UserResponse;
 import pt.ua.MovingTree.enums.AppUserRole;
 import pt.ua.MovingTree.enums.AppUserStatus;
+import pt.ua.MovingTree.exceptions.UserNotFoundException;
 import pt.ua.MovingTree.security.CallerGuard;
 import pt.ua.MovingTree.support.PostgresIntegrationTest;
 
@@ -61,6 +63,24 @@ class UserQueryServiceIT extends PostgresIntegrationTest {
 
         assertEquals(List.of("ana.query"), usernames(response));
         assertEquals(1, response.totalElements());
+    }
+
+    //passa, um id de outro município não é encontrado e é indistinguível de um id inexistente
+    @Test
+    void foreignUserIsNotFoundForCallerMunicipality() {
+        long municipalityA = municipality(jdbc, "detail-a");
+        long municipalityB = municipality(jdbc, "detail-b");
+        long teamB = team(jdbc, municipalityB, "parks-detail-b");
+        long foreignUserId = user(jdbc, municipalityB, teamB, "Daniel", "daniel.detail", "FIELD_WORKER", "ACTIVE");
+        when(callerGuard.requireMunicipalAdministrator()).thenReturn(municipalityA);
+
+        UserNotFoundException foreign = assertThrows(UserNotFoundException.class,
+                () -> queryService.getById(foreignUserId));
+        UserNotFoundException unknown = assertThrows(UserNotFoundException.class,
+                () -> queryService.getById(Long.MAX_VALUE));
+
+        assertEquals("User not found", foreign.getMessage());
+        assertEquals(foreign.getMessage(), unknown.getMessage());
     }
 
     private long seedA() {

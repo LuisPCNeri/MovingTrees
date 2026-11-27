@@ -1,6 +1,7 @@
 package pt.ua.MovingTree.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -156,6 +157,52 @@ class UsersControllerIT extends PostgresIntegrationTest {
     @Test
     void rejectsListForNonAdministrator() throws Exception {
         mockMvc.perform(get("/users")
+                .session(session(AppUserRole.FIELD_WORKER, 1L)))
+                .andExpect(status().isForbidden());
+    }
+
+    //GET /users/{id} devolve os detalhes de um utilizador do município da sessão
+    @Test
+    void returnsUserDetailFromCallerMunicipality() throws Exception {
+        long municipalityId = municipality(jdbc, "api-detail-a");
+        long teamId = team(jdbc, municipalityId, "parks-api-detail");
+        long userId = user(jdbc, municipalityId, teamId, "Ana", "ana.detail", "FIELD_WORKER", "ACTIVE");
+
+        mockMvc.perform(get("/users/{id}", userId)
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, municipalityId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId))
+                .andExpect(jsonPath("$.username").value("ana.detail"))
+                .andExpect(jsonPath("$.municipalityId").value(municipalityId))
+                .andExpect(jsonPath("$.teamId").value(teamId));
+    }
+
+    //falha, id de outro município e id inexistente devolvem 404 com corpo idêntico
+    @Test
+    void foreignAndUnknownIdsReturnIdenticalNotFoundBody() throws Exception {
+        long municipalityA = municipality(jdbc, "api-detail-404-a");
+        long municipalityB = municipality(jdbc, "api-detail-404-b");
+        long teamB = team(jdbc, municipalityB, "parks-api-detail-404");
+        long foreignId = user(jdbc, municipalityB, teamB, "Bruno", "bruno.foreign-detail", "FIELD_WORKER");
+        long unknownId = Long.MAX_VALUE;
+
+        MvcResult foreign = mockMvc.perform(get("/users/{id}", foreignId)
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, municipalityA)))
+                .andExpect(status().isNotFound())
+                .andReturn();
+        MvcResult unknown = mockMvc.perform(get("/users/{id}", unknownId)
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, municipalityA)))
+                .andExpect(status().isNotFound())
+                .andReturn();
+
+        assertEquals(foreign.getResponse().getContentAsString(), unknown.getResponse().getContentAsString());
+        assertFalse(foreign.getResponse().getContentAsString().contains("bruno.foreign-detail"));
+    }
+
+    //falha, sessão sem role de administrador municipal deve receber 403
+    @Test
+    void rejectsDetailForNonAdministrator() throws Exception {
+        mockMvc.perform(get("/users/{id}", 1L)
                 .session(session(AppUserRole.FIELD_WORKER, 1L)))
                 .andExpect(status().isForbidden());
     }

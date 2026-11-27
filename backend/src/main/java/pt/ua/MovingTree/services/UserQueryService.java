@@ -10,6 +10,7 @@ import pt.ua.MovingTree.dtos.UserFilter;
 import pt.ua.MovingTree.dtos.UserResponse;
 import pt.ua.MovingTree.entities.AppUser;
 import pt.ua.MovingTree.exceptions.InvalidPagingException;
+import pt.ua.MovingTree.exceptions.UserNotFoundException;
 import pt.ua.MovingTree.repositories.AppUserRepository;
 import pt.ua.MovingTree.repositories.AppUserSpecifications;
 import pt.ua.MovingTree.security.CallerGuard;
@@ -39,5 +40,12 @@ public class UserQueryService {
                 AppUserSpecifications.forListing(municipalityId, filter),
                 PageRequest.of(page, size, Sort.by("id")));
         return PagedResponse.from(users.map(UserResponse::from));
+    }
+
+    public UserResponse getById(long id) {
+        Long municipalityId = callerGuard.requireMunicipalAdministrator();
+        return userRepository.findByMunicipality_IdAndId(municipalityId, id)
+                .map(UserResponse::from)
+                .orElseThrow(UserNotFoundException::new);
     }
 }

@@ -14,6 +14,7 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,6 +32,7 @@ import pt.ua.MovingTree.entities.AppUser;
 import pt.ua.MovingTree.enums.AppUserRole;
 import pt.ua.MovingTree.enums.AppUserStatus;
 import pt.ua.MovingTree.exceptions.InvalidPagingException;
+import pt.ua.MovingTree.exceptions.UserNotFoundException;
 import pt.ua.MovingTree.repositories.AppUserRepository;
 import pt.ua.MovingTree.security.CallerGuard;
 
@@ -147,6 +149,23 @@ class UserQueryServiceTest {
                 () -> service.list(-1, 20, new UserFilter(null, null, null, null)));
 
         verifyNoInteractions(callerGuard, userRepository);
+    }
+
+    //passa, id de outro município e id inexistente devolvem exatamente o mesmo resultado
+    @Test
+    void foreignAndUnknownIdsProduceSameNotFoundResult() {
+        service = new UserQueryService(userRepository, callerGuard);
+        when(callerGuard.requireMunicipalAdministrator()).thenReturn(10L);
+        when(userRepository.findByMunicipality_IdAndId(10L, 20L)).thenReturn(Optional.empty());
+        when(userRepository.findByMunicipality_IdAndId(10L, 30L)).thenReturn(Optional.empty());
+
+        UserNotFoundException foreign = assertThrows(UserNotFoundException.class, () -> service.getById(20L));
+        UserNotFoundException unknown = assertThrows(UserNotFoundException.class, () -> service.getById(30L));
+
+        assertEquals(foreign.getClass(), unknown.getClass());
+        assertEquals(foreign.getMessage(), unknown.getMessage());
+        verify(userRepository).findByMunicipality_IdAndId(10L, 20L);
+        verify(userRepository).findByMunicipality_IdAndId(10L, 30L);
     }
 
     private void stubPredicates() {

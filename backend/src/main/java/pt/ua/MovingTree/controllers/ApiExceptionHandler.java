@@ -15,6 +15,7 @@ import pt.ua.MovingTree.exceptions.DuplicateUsernameException;
 import pt.ua.MovingTree.exceptions.ForbiddenOperationException;
 import pt.ua.MovingTree.exceptions.InvalidPagingException;
 import pt.ua.MovingTree.exceptions.TeamNotInMunicipalityException;
+import pt.ua.MovingTree.exceptions.UserNotFoundException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
@@ -43,6 +44,12 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleInvalidParameter() {
         return ApiError.of("Invalid request parameter");
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handleUserNotFound(UserNotFoundException exception) {
+        return ApiError.of(exception.getMessage());
     }
 
     @ExceptionHandler(TeamNotInMunicipalityException.class)
