@@ -10,6 +10,7 @@ class SimulatorConfig:
     vehicle_count: int = 10
     vehicles_file: str = str(Path(__file__).with_name("vehicles.json"))
     routes_file: str = str(Path(__file__).with_name("routes.json"))
+    fault_probability: float = 0.01
 
     @classmethod
     def from_env(cls):
@@ -30,6 +31,16 @@ class SimulatorConfig:
         if vehicle_count <= 0:
             raise ValueError("VEHICLE_COUNT must be a positive integer")
 
+        probability_value = os.getenv("FAULT_PROBABILITY", "0.01")
+        try:
+            fault_probability = float(probability_value)
+        except ValueError as error:
+            raise ValueError(
+                "FAULT_PROBABILITY must be a number between 0 and 1"
+            ) from error
+        if not math.isfinite(fault_probability) or not 0 <= fault_probability <= 1:
+            raise ValueError("FAULT_PROBABILITY must be a number between 0 and 1")
+
         vehicles_file = os.getenv(
             "VEHICLES_FILE", str(Path(__file__).with_name("vehicles.json"))
         )
@@ -41,4 +52,5 @@ class SimulatorConfig:
             vehicle_count=vehicle_count,
             vehicles_file=vehicles_file,
             routes_file=routes_file,
+            fault_probability=fault_probability,
         )

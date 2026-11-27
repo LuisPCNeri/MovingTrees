@@ -8,6 +8,7 @@ def test_defaults(monkeypatch):
     monkeypatch.delenv("VEHICLE_COUNT", raising=False)
     monkeypatch.delenv("VEHICLES_FILE", raising=False)
     monkeypatch.delenv("ROUTES_FILE", raising=False)
+    monkeypatch.delenv("FAULT_PROBABILITY", raising=False)
 
     assert SimulatorConfig.from_env() == SimulatorConfig(
         publish_rate=1.0,
@@ -25,6 +26,12 @@ def test_reads_routes_path(monkeypatch):
     monkeypatch.setenv("ROUTES_FILE", "/data/routes.json")
 
     assert SimulatorConfig.from_env().routes_file == "/data/routes.json"
+
+
+def test_reads_fault_probability(monkeypatch):
+    monkeypatch.setenv("FAULT_PROBABILITY", "0.25")
+
+    assert SimulatorConfig.from_env().fault_probability == 0.25
 
 
 def test_reads_rate_and_vehicle_count(monkeypatch):
@@ -52,4 +59,12 @@ def test_rejects_invalid_vehicle_count(monkeypatch, value):
     monkeypatch.setenv("VEHICLE_COUNT", value)
 
     with pytest.raises(ValueError, match="VEHICLE_COUNT"):
+        SimulatorConfig.from_env()
+
+
+@pytest.mark.parametrize("value", ["abc", "-0.1", "1.01", "nan", "inf"])
+def test_rejects_invalid_fault_probability(monkeypatch, value):
+    monkeypatch.setenv("FAULT_PROBABILITY", value)
+
+    with pytest.raises(ValueError, match="FAULT_PROBABILITY"):
         SimulatorConfig.from_env()

@@ -14,6 +14,7 @@ services:
     environment:
       PUBLISH_RATE: ${PUBLISH_RATE:-1}
       VEHICLE_COUNT: ${VEHICLE_COUNT:-10}
+      FAULT_PROBABILITY: ${FAULT_PROBABILITY:-0.01}
       VEHICLES_FILE: /data/vehicles.json
       ROUTES_FILE: /data/routes.json
       MQTT_HOST: broker

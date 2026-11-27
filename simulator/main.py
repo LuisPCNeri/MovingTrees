@@ -8,6 +8,7 @@ import paho.mqtt.client as mqtt
 
 from simulator.config import SimulatorConfig
 from simulator.generators.battery import BatteryGenerator
+from simulator.generators.fault import FaultGenerator
 from simulator.generators.gps import GPSGenerator
 from simulator.generators.lock import LockGenerator
 from simulator.publisher import TelemetryPublisher
@@ -43,7 +44,16 @@ def run(
         speed_meters_per_second=gps_generator.speed_meters_per_second,
     )
     lock_generator = LockGenerator(publisher)
-    generators = [gps_generator, battery_generator, lock_generator]
+    fault_generator = FaultGenerator(
+        publisher,
+        probability=config.fault_probability,
+    )
+    generators = [
+        gps_generator,
+        battery_generator,
+        lock_generator,
+        fault_generator,
+    ]
     gps_states = {}
 
     stopped = threading.Event()

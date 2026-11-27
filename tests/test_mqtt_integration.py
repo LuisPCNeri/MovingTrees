@@ -85,6 +85,7 @@ def collect_run(vehicle_count, mosquitto):
         MQTT_PORT="1883",
         MQTT_USERNAME="simulator",
         MQTT_PASSWORD="demo-simulator-password",
+        FAULT_PROBABILITY="0",
     )
     process = subprocess.Popen(
         [sys.executable, "-m", "simulator"],
