@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -33,6 +34,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 import pt.ua.MovingTree.enums.AppUserRole;
+import pt.ua.MovingTree.enums.AppUserStatus;
 import pt.ua.MovingTree.security.HttpSessionCallerContext;
 import pt.ua.MovingTree.support.PostgresIntegrationTest;
 
@@ -269,6 +271,50 @@ class UsersControllerIT extends PostgresIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(Map.of("role", "FLEET_OPERATOR"))))
                 .andExpect(status().isNotFound());
+    }
+
+    //PATCH /users/{id}/status ativa e desativa a conta com 200
+    @ParameterizedTest(name = "{0} -> {1}")
+    @MethodSource("statusTransitions")
+    void changesStatus(AppUserStatus from, AppUserStatus to) throws Exception {
+        String suffix = from.name().toLowerCase() + "-" + to.name().toLowerCase();
+        long municipalityId = municipality(jdbc, "api-status-" + suffix);
+        long teamId = team(jdbc, municipalityId, "parks-api-status-" + suffix);
+        long userId = user(jdbc, municipalityId, teamId, "Ana", "ana.status-" + suffix, "FIELD_WORKER", from.name());
+
+        mockMvc.perform(patch("/users/{id}/status", userId)
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, municipalityId))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of("status", to.name()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId))
+                .andExpect(jsonPath("$.status").value(to.name()));
+    }
+
+    //falha, sessão sem role de administrador municipal deve receber 403
+    @Test
+    void rejectsStatusChangeForNonAdministrator() throws Exception {
+        mockMvc.perform(patch("/users/{id}/status", 1L)
+                .session(session(AppUserRole.FIELD_WORKER, 1L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of("status", "ACTIVE"))))
+                .andExpect(status().isForbidden());
+    }
+
+    //falha, id inexistente deve devolver 404
+    @Test
+    void rejectsStatusChangeForUnknownUser() throws Exception {
+        mockMvc.perform(patch("/users/{id}/status", Long.MAX_VALUE)
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, 1L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of("status", "ACTIVE"))))
+                .andExpect(status().isNotFound());
+    }
+
+    private static Stream<Arguments> statusTransitions() {
+        return Stream.of(
+                Arguments.of(AppUserStatus.INACTIVE, AppUserStatus.ACTIVE),
+                Arguments.of(AppUserStatus.ACTIVE, AppUserStatus.INACTIVE));
     }
 
     private static Stream<Arguments> invalidPaging() {

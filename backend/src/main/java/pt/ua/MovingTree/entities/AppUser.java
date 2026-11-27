@@ -73,4 +73,8 @@ public class AppUser {
     public void changeTeam(Team team) {
         this.team = team;
     }
+
+    public void changeStatus(AppUserStatus status) {
+        this.status = status;
+    }
 }

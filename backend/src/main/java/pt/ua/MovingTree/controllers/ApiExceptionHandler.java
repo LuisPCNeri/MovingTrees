@@ -13,6 +13,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import pt.ua.MovingTree.dtos.ApiError;
 import pt.ua.MovingTree.exceptions.DuplicateUsernameException;
 import pt.ua.MovingTree.exceptions.ForbiddenOperationException;
+import pt.ua.MovingTree.exceptions.InvalidCredentialsException;
 import pt.ua.MovingTree.exceptions.InvalidPagingException;
 import pt.ua.MovingTree.exceptions.InvalidUserUpdateException;
 import pt.ua.MovingTree.exceptions.TeamNotInMunicipalityException;
@@ -51,6 +52,12 @@ public class ApiExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleInvalidParameter() {
         return ApiError.of("Invalid request parameter");
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiError handleInvalidCredentials(InvalidCredentialsException exception) {
+        return ApiError.of(exception.getMessage());
     }
 
     @ExceptionHandler(UserNotFoundException.class)

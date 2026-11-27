@@ -12,4 +12,5 @@ public interface AppUserRepository extends Repository<AppUser, Long>, JpaSpecifi
     List<AppUser> findAllByMunicipality_Id(Long municipalityId);
     Optional<AppUser> findByMunicipality_IdAndUsername(Long municipalityId, String username);
     boolean existsByUsername(String username);
+    Optional<AppUser> findByUsername(String username);
 }
