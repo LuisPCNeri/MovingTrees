@@ -3,16 +3,21 @@ import { AdminLayout } from '../../components/AdminLayout'
 import { Banner, Field, RoleSelect, UsersBreadcrumb } from '../../components/form'
 import { StatusBadge } from '../../components/StatusBadge'
 import { BUTTON_PRIMARY, BUTTON_SECONDARY, FIELD } from '../../components/styles'
-import { getUser, updateUser, type ApiError, type Role, type User } from '../../api/users'
+import { changeStatus, getUser, updateUser, type ApiError, type Role, type Status, type User } from '../../api/users'
+
+const CARD = 'mt-6 max-w-2xl rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6'
+const BUTTON_DANGER =
+  'inline-flex h-10 items-center justify-center rounded-lg px-6 text-sm font-semibold transition-colors focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:outline-none disabled:opacity-50'
 
 export function UserDetailPage({ id }: { id: string }) {
   const [user, setUser] = useState<User | null>(null)
   const [loadError, setLoadError] = useState<ApiError | null>(null)
   const [role, setRole] = useState<Role | ''>('')
   const [teamId, setTeamId] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState<ApiError | null>(null)
-  const [saved, setSaved] = useState(false)
+  const [busy, setBusy] = useState<'save' | 'status' | null>(null)
+  const [error, setError] = useState<ApiError | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState(false)
 
   const load = (u: User) => {
     setUser(u)
@@ -32,20 +37,42 @@ export function UserDetailPage({ id }: { id: string }) {
   const unchanged = !!user && role === user.role && team === user.teamId
   const invalid = !role || !Number.isInteger(team) || team < 1
 
-  async function onSubmit(e: FormEvent) {
+  // Runs one action at a time and reports its outcome in the shared banner.
+  async function run(kind: 'save' | 'status', action: () => Promise<string>) {
+    setBusy(kind)
+    setError(null)
+    setNotice(null)
+    try {
+      setNotice(await action())
+    } catch (err) {
+      setError(err as ApiError)
+    } finally {
+      setBusy(null)
+      setConfirming(false)
+    }
+  }
+
+  function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (!user || unchanged || invalid) return
-    setSaving(true)
-    setSaveError(null)
-    setSaved(false)
-    try {
+    run('save', async () => {
       load(await updateUser(user.id, { role, teamId: team }))
-      setSaved(true)
-    } catch (err) {
-      setSaveError(err as ApiError)
-    } finally {
-      setSaving(false)
-    }
+      return "Changes saved. They apply at the user's next sign-in."
+    })
+  }
+
+  function setStatus(status: Status) {
+    if (!user) return
+    run('status', async () => {
+      // only the status changed, so keep any unsaved role/team edits in the form
+      setUser(await changeStatus(user.id, status))
+      return status === 'ACTIVE' ? `Access activated. ${user.name} can now sign in.` : 'Access deactivated.'
+    })
+  }
+
+  const edit = (apply: () => void) => {
+    apply()
+    setNotice(null)
   }
 
   // 400 = id is not a number, 404 = missing or from another municipality
@@ -58,7 +85,7 @@ export function UserDetailPage({ id }: { id: string }) {
       <UsersBreadcrumb current={user?.name ?? id} />
 
       {loadError ? (
-        <div role="alert" className="mt-6 max-w-2xl rounded-xl border border-slate-200 bg-white p-6 text-sm shadow-sm">
+        <div role="alert" className={`${CARD} text-sm`}>
           <p className="text-slate-700">
             {notFound ? 'This user does not exist or belongs to another municipality.' : loadError.message}
           </p>
@@ -69,52 +96,98 @@ export function UserDetailPage({ id }: { id: string }) {
       ) : !user ? (
         <p className="mt-6 text-sm text-slate-500">Loading…</p>
       ) : (
-        <form onSubmit={onSubmit} className="mt-6 max-w-2xl rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+        <>
+          <div className="max-w-2xl">
+            {error && <Banner tone="error">{error.message}</Banner>}
+            {notice && <Banner tone="success">{notice}</Banner>}
+          </div>
+
+          <form onSubmit={onSubmit} className={CARD}>
             <h2 className="text-lg font-semibold">Role and team</h2>
-            <StatusBadge status={user.status} />
-          </div>
-          <p className="mt-2 text-sm break-all text-slate-600">{user.username}</p>
+            <p className="mt-2 text-sm break-all text-slate-600">{user.username}</p>
 
-          {saveError && <Banner tone="error">{saveError.message}</Banner>}
-          {saved && <Banner tone="success">Changes saved. They apply at the user's next sign-in.</Banner>}
+            <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
+              <Field label="Role">
+                <RoleSelect value={role} onChange={(e) => edit(() => setRole(e.target.value as Role))} />
+              </Field>
+              {/* shortcut: no teams endpoint yet, swap for a team select once the backend lists teams */}
+              <Field label="Team ID" error={error?.fieldErrors.teamId}>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  inputMode="numeric"
+                  value={teamId}
+                  onChange={(e) => edit(() => setTeamId(e.target.value))}
+                  className={`px-3 ${FIELD}`}
+                />
+              </Field>
+            </div>
 
-          <div className="mt-5 grid gap-x-4 gap-y-5 sm:grid-cols-2">
-            <Field label="Role">
-              <RoleSelect
-                value={role}
-                onChange={(e) => {
-                  setRole(e.target.value as Role)
-                  setSaved(false)
-                }}
-              />
-            </Field>
-            {/* shortcut: no teams endpoint yet, swap for a team select once the backend lists teams */}
-            <Field label="Team ID" error={saveError?.fieldErrors.teamId}>
-              <input
-                type="number"
-                min={1}
-                step={1}
-                inputMode="numeric"
-                value={teamId}
-                onChange={(e) => {
-                  setTeamId(e.target.value)
-                  setSaved(false)
-                }}
-                className={`px-3 ${FIELD}`}
-              />
-            </Field>
-          </div>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button type="submit" disabled={unchanged || invalid || busy !== null} className={BUTTON_PRIMARY}>
+                {busy === 'save' ? 'Saving…' : 'Save changes'}
+              </button>
+              <a href="/admin/users" className={BUTTON_SECONDARY}>
+                Back
+              </a>
+            </div>
+          </form>
 
-          <div className="mt-8 flex flex-wrap gap-3">
-            <button type="submit" disabled={unchanged || invalid || saving} className={BUTTON_PRIMARY}>
-              {saving ? 'Saving…' : 'Save changes'}
-            </button>
-            <a href="/admin/users" className={BUTTON_SECONDARY}>
-              Back
-            </a>
-          </div>
-        </form>
+          <section aria-labelledby="access-heading" className={CARD}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 id="access-heading" className="text-lg font-semibold">
+                Access
+              </h2>
+              <StatusBadge status={user.status} />
+            </div>
+
+            {user.status === 'INACTIVE' ? (
+              <>
+                <p className="mt-2 text-sm text-slate-600">This user cannot sign in until their access is activated.</p>
+                <button
+                  type="button"
+                  disabled={busy !== null}
+                  onClick={() => setStatus('ACTIVE')}
+                  className={`mt-5 ${BUTTON_PRIMARY}`}
+                >
+                  {busy === 'status' ? 'Activating…' : 'Activate access'}
+                </button>
+              </>
+            ) : confirming ? (
+              <div role="alertdialog" aria-labelledby="confirm-text" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+                <p id="confirm-text" className="text-sm text-red-900">
+                  Deactivate {user.name}? They will not be able to sign in until their access is activated again.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    onClick={() => setStatus('INACTIVE')}
+                    className={`${BUTTON_DANGER} bg-red-700 text-white hover:bg-red-800`}
+                  >
+                    {busy === 'status' ? 'Deactivating…' : 'Yes, deactivate'}
+                  </button>
+                  <button type="button" onClick={() => setConfirming(false)} className={BUTTON_SECONDARY}>
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="mt-2 text-sm text-slate-600">This user can sign in.</p>
+                <button
+                  type="button"
+                  disabled={busy !== null}
+                  onClick={() => setConfirming(true)}
+                  className={`mt-5 border border-red-300 bg-white text-red-700 hover:bg-red-50 ${BUTTON_DANGER}`}
+                >
+                  Deactivate access
+                </button>
+              </>
+            )}
+          </section>
+        </>
       )}
     </AdminLayout>
   )

@@ -105,3 +105,7 @@ export function getUser(id: string, signal?: AbortSignal): Promise<User> {
 export function updateUser(id: number, body: { role: Role; teamId: number }): Promise<User> {
   return request(`/users/${id}`, json('PUT', body))
 }
+
+export function changeStatus(id: number, status: Status): Promise<User> {
+  return request(`/users/${id}/status`, json('PATCH', { status }))
+}

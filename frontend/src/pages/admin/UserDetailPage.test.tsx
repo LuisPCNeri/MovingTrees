@@ -48,4 +48,34 @@ describe('UserDetailPage', () => {
     render(<UserDetailPage id="99" />)
     expect((await screen.findByRole('heading', { level: 1 })).textContent).toContain('User not found')
   })
+
+  it('asks for confirmation before deactivating', async () => {
+    const fetch = mockFetch([200, paulo], [200, { ...paulo, status: 'INACTIVE' }])
+    render(<UserDetailPage id="7" />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Deactivate access' }))
+    expect(screen.getByRole('alertdialog').textContent).toContain('Deactivate Paulo?')
+    expect(fetch).toHaveBeenCalledTimes(1) // only the initial GET
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+    expect(screen.queryByRole('alertdialog')).toBeNull()
+    expect(fetch).toHaveBeenCalledTimes(1)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Deactivate access' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Yes, deactivate' }))
+
+    expect((await screen.findByRole('status')).textContent).toBe('Access deactivated.')
+    expect(fetch).toHaveBeenLastCalledWith('/api/users/7/status', expect.objectContaining({ method: 'PATCH', body: '{"status":"INACTIVE"}' }))
+    expect(screen.getByRole('button', { name: 'Activate access' })).toBeTruthy()
+  })
+
+  it('activates without asking for confirmation', async () => {
+    const fetch = mockFetch([200, { ...paulo, status: 'INACTIVE' }], [200, paulo])
+    render(<UserDetailPage id="7" />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Activate access' }))
+
+    expect((await screen.findByRole('status')).textContent).toBe('Access activated. Paulo can now sign in.')
+    expect(fetch).toHaveBeenLastCalledWith('/api/users/7/status', expect.objectContaining({ method: 'PATCH', body: '{"status":"ACTIVE"}' }))
+  })
 })
