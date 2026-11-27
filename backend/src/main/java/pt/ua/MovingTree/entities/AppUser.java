@@ -37,8 +37,8 @@ public class AppUser {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "login", nullable = false, unique = true)
-    private String login;
+    @Column(name = "username", nullable = false, unique = true)
+    private String username;
 
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
@@ -57,11 +57,11 @@ public class AppUser {
     @Column(name = "updated_at", nullable = false, insertable = false, updatable = false)
     private Instant updatedAt;
 
-    public AppUser(Municipality municipality, Team team, String name, String login, String passwordHash, AppUserRole role) {
+    public AppUser(Municipality municipality, Team team, String name, String username, String passwordHash, AppUserRole role) {
         this.municipality = municipality;
         this.team = team;
         this.name = name;
-        this.login = login;
+        this.username = username;
         this.passwordHash = passwordHash;
         this.role = role;
         this.status = AppUserStatus.INACTIVE;

@@ -1,6 +1,7 @@
 package pt.ua.MovingTree.repositories;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static pt.ua.MovingTree.support.IdentityTestData.municipality;
@@ -44,10 +45,10 @@ class AppUserRepositoryIT extends PostgresIntegrationTest {
 
         assertTrue(repository.findByMunicipality_IdAndId(municipalityA, userB).isEmpty());
         assertTrue(repository.findByMunicipality_IdAndId(municipalityB, userA).isEmpty());
-        assertTrue(repository.findByMunicipality_IdAndLogin(municipalityA, "bruno.repo-isolation").isEmpty());
-        assertTrue(repository.findByMunicipality_IdAndLogin(municipalityB, "ana.repo-isolation").isEmpty());
-        assertEquals(List.of("ana.repo-isolation"), logins(repository.findAllByMunicipality_Id(municipalityA)));
-        assertEquals(List.of("bruno.repo-isolation"), logins(repository.findAllByMunicipality_Id(municipalityB)));
+        assertTrue(repository.findByMunicipality_IdAndUsername(municipalityA, "bruno.repo-isolation").isEmpty());
+        assertTrue(repository.findByMunicipality_IdAndUsername(municipalityB, "ana.repo-isolation").isEmpty());
+        assertEquals(List.of("ana.repo-isolation"), usernames(repository.findAllByMunicipality_Id(municipalityA)));
+        assertEquals(List.of("bruno.repo-isolation"), usernames(repository.findAllByMunicipality_Id(municipalityB)));
     }
 
     //passa, guardar com o município A cria um utilizador INACTIVE visível apenas em A
@@ -66,8 +67,8 @@ class AppUserRepositoryIT extends PostgresIntegrationTest {
         assertEquals(AppUserStatus.INACTIVE, saved.getStatus());
         assertEquals("INACTIVE", jdbc.queryForObject(
                 "select status from app_user where id = ?", String.class, saved.getId()));
-        assertTrue(repository.findByMunicipality_IdAndLogin(municipalityA, "carla.repo-save").isPresent());
-        assertTrue(repository.findByMunicipality_IdAndLogin(municipalityB, "carla.repo-save").isEmpty());
+        assertTrue(repository.findByMunicipality_IdAndUsername(municipalityA, "carla.repo-save").isPresent());
+        assertTrue(repository.findByMunicipality_IdAndUsername(municipalityB, "carla.repo-save").isEmpty());
     }
 
     //falha, guardar no contexto A um utilizador de B deve ser recusado com InvalidDataAccessApiUsageException
@@ -101,7 +102,22 @@ class AppUserRepositoryIT extends PostgresIntegrationTest {
         assertTrue(exception.getMostSpecificCause() instanceof IllegalArgumentException);
     }
 
-    private List<String> logins(List<AppUser> users) {
-        return users.stream().map(AppUser::getLogin).toList();
+    //existsByUsername pesquisa globalmente, independentemente do município
+    @Test
+    void existsByUsernameIsGlobal() {
+        long municipalityA = municipality(jdbc, "repo-username-a");
+        long municipalityB = municipality(jdbc, "repo-username-b");
+        long teamA = team(jdbc, municipalityA, "parks-username-a");
+        long teamB = team(jdbc, municipalityB, "parks-username-b");
+        user(jdbc, municipalityA, teamA, "Ana", "ana.repo-username", "FIELD_WORKER");
+        user(jdbc, municipalityB, teamB, "Bruno", "bruno.repo-username", "FIELD_WORKER");
+
+        assertTrue(repository.existsByUsername("ana.repo-username"));
+        assertTrue(repository.existsByUsername("bruno.repo-username"));
+        assertFalse(repository.existsByUsername("unknown.repo-username"));
+    }
+
+    private List<String> usernames(List<AppUser> users) {
+        return users.stream().map(AppUser::getUsername).toList();
     }
 }

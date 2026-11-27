@@ -21,16 +21,16 @@ class IdentityConstraintsIT extends PostgresIntegrationTest {
     @Autowired
     private JdbcTemplate jdbc;
 
-    //falha ao repetir o login noutro município deve violar UNIQUE com SQLState 23505
+    //falha ao repetir o username noutro município deve violar UNIQUE com SQLState 23505
     @Test
-    void duplicateLoginIsRejectedAcrossMunicipalities() {
-        long municipalityA = municipality(jdbc, "constraints-login-a");
-        long municipalityB = municipality(jdbc, "constraints-login-b");
+    void duplicateUsernameIsRejectedAcrossMunicipalities() {
+        long municipalityA = municipality(jdbc, "constraints-username-a");
+        long municipalityB = municipality(jdbc, "constraints-username-b");
         long teamA = team(jdbc, municipalityA, "team-a");
         long teamB = team(jdbc, municipalityB, "team-b");
-        user(jdbc, municipalityA, teamA, "Ana", "duplicate.constraints.login", "FIELD_WORKER");
+        user(jdbc, municipalityA, teamA, "Ana", "duplicate.constraints.username", "FIELD_WORKER");
 
-        assertSqlState("23505", () -> user(jdbc, municipalityB, teamB, "Bruno", "duplicate.constraints.login",
+        assertSqlState("23505", () -> user(jdbc, municipalityB, teamB, "Bruno", "duplicate.constraints.username",
                 "FIELD_WORKER"));
     }
 

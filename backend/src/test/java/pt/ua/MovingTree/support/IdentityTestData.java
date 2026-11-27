@@ -28,27 +28,27 @@ public final class IdentityTestData {
         return key(keyHolder);
     }
 
-    public static long user(JdbcTemplate jdbc, long municipalityId, long teamId, String name, String login, String role) {
-        return user(jdbc, municipalityId, teamId, name, login, role, null);
+    public static long user(JdbcTemplate jdbc, long municipalityId, long teamId, String name, String username, String role) {
+        return user(jdbc, municipalityId, teamId, name, username, role, null);
     }
 
-    public static long user(JdbcTemplate jdbc, long municipalityId, long teamId, String name, String login, String role,
+    public static long user(JdbcTemplate jdbc, long municipalityId, long teamId, String name, String username, String role,
             String status) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(connection -> {
             PreparedStatement statement = status == null
                     ? connection.prepareStatement("""
-                            insert into app_user (municipality_id, team_id, name, login, password_hash, role)
+                            insert into app_user (municipality_id, team_id, name, username, password_hash, role)
                             values (?, ?, ?, ?, ?, ?)
                             """, Statement.RETURN_GENERATED_KEYS)
                     : connection.prepareStatement("""
-                            insert into app_user (municipality_id, team_id, name, login, password_hash, role, status)
+                            insert into app_user (municipality_id, team_id, name, username, password_hash, role, status)
                             values (?, ?, ?, ?, ?, ?, ?)
                             """, Statement.RETURN_GENERATED_KEYS);
             statement.setLong(1, municipalityId);
             statement.setLong(2, teamId);
             statement.setString(3, name);
-            statement.setString(4, login);
+            statement.setString(4, username);
             statement.setString(5, "hashed-password");
             statement.setString(6, role);
             if (status != null) {

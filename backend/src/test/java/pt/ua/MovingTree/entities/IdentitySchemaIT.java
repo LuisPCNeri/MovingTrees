@@ -44,11 +44,11 @@ class IdentitySchemaIT extends PostgresIntegrationTest {
                 """, String.class));
 
         assertTrue(columns.containsAll(Set.of(
-                "id", "municipality_id", "team_id", "name", "login", "password_hash",
+                "id", "municipality_id", "team_id", "name", "username", "password_hash",
                 "role", "status", "created_at", "updated_at")));
     }
 
-    //passa, devem existir índices em municipality, role, status e login único
+    //passa, devem existir índices em municipality, role, status e username único
     @Test
     void hasRequiredIndexes() {
         Set<String> indexes = new HashSet<>(jdbc.queryForList("""
@@ -60,10 +60,10 @@ class IdentitySchemaIT extends PostgresIntegrationTest {
                 "ix_app_user_municipality",
                 "ix_app_user_role",
                 "ix_app_user_status",
-                "uq_app_user_login")));
+                "uq_app_user_username")));
     }
 
-    //passa, devem existir as FKs, os checks de role/status e o único de login
+    //passa, devem existir as FKs, os checks de role/status e o único de username
     @Test
     void hasRequiredForeignKeysAndChecks() {
         Set<String> appUserConstraints = new HashSet<>(jdbc.queryForList("""
@@ -72,7 +72,7 @@ class IdentitySchemaIT extends PostgresIntegrationTest {
                 """, String.class));
 
         assertTrue(appUserConstraints.containsAll(Set.of(
-                "uq_app_user_login",
+                "uq_app_user_username",
                 "ck_app_user_role",
                 "ck_app_user_status",
                 "fk_app_user_municipality",

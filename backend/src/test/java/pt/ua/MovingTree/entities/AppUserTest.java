@@ -21,7 +21,7 @@ class AppUserTest {
         assertSame(municipality, user.getMunicipality());
         assertSame(team, user.getTeam());
         assertEquals("Paulo", user.getName());
-        assertEquals("paulo", user.getLogin());
+        assertEquals("paulo", user.getUsername());
         assertEquals("hash", user.getPasswordHash());
         assertEquals(AppUserRole.FIELD_WORKER, user.getRole());
         assertEquals(AppUserStatus.INACTIVE, user.getStatus());
