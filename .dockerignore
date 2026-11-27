@@ -1,0 +1,8 @@
+.git
+.agent_tools
+.pytest_cache
+__pycache__
+backend
+docs
+frontend
+tests

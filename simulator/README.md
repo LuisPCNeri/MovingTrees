@@ -1,0 +1,35 @@
+# Telemetry simulator
+
+Run the project services, simulator, and Mosquitto with `docker compose up --build`.
+
+| Environment variable | Default | Meaning |
+| --- | ---: | --- |
+| `PUBLISH_RATE` | `1` | Positive, finite number of events per second across the whole fleet |
+| `VEHICLE_COUNT` | `10` | Positive integer number of simulated vehicles |
+| `FAULT_PROBABILITY` | `0.01` | Probability from 0 to 1 per vehicle fault-generator tick |
+| `VEHICLES_FILE` | `./simulator/vehicles.json` | Host path to a JSON array of registered vehicles |
+| `ROUTES_FILE` | `./simulator/routes.json` | Host path to configured hub coordinates |
+
+Set the variables before starting or restarting the simulator container to
+apply new values. Invalid values prevent the simulator from starting.
+Each vehicle entry must contain non-empty string fields `serial`,
+`municipality`, and `hub`; serials must be unique. Vehicle count cannot exceed
+the number of entries in the seed file. In the container, the file is mounted
+at `/data/vehicles.json`. Each vehicle hub must have coordinates in the route
+file, mounted at `/data/routes.json`.
+
+Events use `telemetry/<municipality>/<serial>` and are validated against
+`schemas/telemetry-event.schema.json` before publishing. The Compose setup uses
+development-only MQTT credentials (`simulator` / `demo-simulator-password`
+for publishing and `viewer` / `demo-viewer-password` for subscribing). If you
+change the publisher password, update `mosquitto/passwd` to match.
+
+GPS advances at 4 m/s and dwells at each hub for 60 seconds. Battery starts at a
+seedable random level from 50–100%, drains 2 percentage points per kilometre
+while moving, and charges 0.02 points per second while at a hub. Vehicles start
+locked, unlock when movement begins, and lock once when arriving at a hub.
+Faults use the shared schema's allowed types and severities and occur at the
+configured probability per vehicle tick.
+
+Run tests with `python -m pytest`. The MQTT integration test requires Docker
+Compose and uses a temporary Mosquitto service.

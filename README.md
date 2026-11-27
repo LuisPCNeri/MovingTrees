@@ -16,3 +16,18 @@ MovingTrees is a fleet-as-a-service platform that helps municipalities maintain 
 ## Hot Links
 - Jira: https://treelens-pei.atlassian.net/jira/software/projects/MT/boards/35/backlog
 - Figma: https://www.figma.com/design/gyrUJyVzN1sllOrNRCTQBR/Sem-t%C3%ADtulo?node-id=0-1&p=f&t=7QF2LMSXCVzl2o97-0
+
+## Run with Docker Compose
+
+Start the frontend, backend, PostgreSQL, telemetry simulator, and Mosquitto:
+
+```sh
+docker compose up --build
+```
+
+The frontend is available at <http://localhost:3000>, the backend at
+<http://localhost:8081>, PostgreSQL at `localhost:5433`, and MQTT at
+`localhost:1883`. Compose uses development-only database credentials by
+default; override them with `POSTGRES_DB`, `POSTGRES_USER`, and
+`POSTGRES_PASSWORD`. Host ports can be changed with `FRONTEND_PORT`,
+`BACKEND_PORT`, `POSTGRES_PORT`, and `MQTT_PORT` if the defaults are occupied.

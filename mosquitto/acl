@@ -1,0 +1,5 @@
+user simulator
+topic write telemetry/#
+
+user viewer
+topic read telemetry/#

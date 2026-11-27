@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://movingtrees.example/schemas/telemetry-event.schema.json",
+  "title": "MovingTrees telemetry event",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "event_type",
+    "timestamp",
+    "vehicle_id",
+    "municipality",
+    "data"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "event_type": {
+      "type": "string",
+      "enum": ["heartbeat", "battery", "gps", "lock", "fault"]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "vehicle_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "municipality": {
+      "type": "string",
+      "minLength": 1
+    },
+    "data": {
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "event_type": {"const": "heartbeat"},
+        "data": {
+          "type": "object",
+          "maxProperties": 0
+        }
+      }
+    },
+    {
+      "properties": {
+        "event_type": {"const": "battery"},
+        "data": {
+          "type": "object",
+          "required": ["battery_level"],
+          "properties": {
+            "battery_level": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "event_type": {"const": "gps"},
+        "data": {
+          "type": "object",
+          "required": ["latitude", "longitude", "hub_id", "moving"],
+          "properties": {
+            "latitude": {
+              "type": "number",
+              "minimum": -90,
+              "maximum": 90
+            },
+            "longitude": {
+              "type": "number",
+              "minimum": -180,
+              "maximum": 180
+            },
+            "hub_id": {
+              "type": ["string", "null"],
+              "minLength": 1
+            },
+            "moving": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "event_type": {"const": "lock"},
+        "data": {
+          "type": "object",
+          "required": ["locked"],
+          "properties": {
+            "locked": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "properties": {
+        "event_type": {"const": "fault"},
+        "data": {
+          "type": "object",
+          "required": ["fault_type", "severity"],
+          "properties": {
+            "fault_type": {
+              "type": "string",
+              "enum": [
+                "motor_overheat",
+                "battery_failure",
+                "gps_failure",
+                "brake_failure",
+                "lock_failure"
+              ]
+            },
+            "severity": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"]
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,22 @@
+[
+  {"serial": "MT-EB-01", "municipality": "demo-municipality", "hub": "central-hub"},
+  {"serial": "MT-EB-02", "municipality": "demo-municipality", "hub": "central-hub"},
+  {"serial": "MT-EB-03", "municipality": "demo-municipality", "hub": "central-hub"},
+  {"serial": "MT-EB-04", "municipality": "demo-municipality", "hub": "central-hub"},
+  {"serial": "MT-EB-05", "municipality": "demo-municipality", "hub": "central-hub"},
+  {"serial": "MT-EB-06", "municipality": "demo-municipality", "hub": "central-hub"},
+  {"serial": "MT-EB-07", "municipality": "demo-municipality", "hub": "central-hub"},
+  {"serial": "MT-EB-08", "municipality": "demo-municipality", "hub": "central-hub"},
+  {"serial": "MT-EB-09", "municipality": "demo-municipality", "hub": "central-hub"},
+  {"serial": "MT-EB-10", "municipality": "demo-municipality", "hub": "central-hub"},
+  {"serial": "MT-CB-01", "municipality": "demo-municipality", "hub": "botanical-hub"},
+  {"serial": "MT-CB-02", "municipality": "demo-municipality", "hub": "botanical-hub"},
+  {"serial": "MT-CB-03", "municipality": "demo-municipality", "hub": "botanical-hub"},
+  {"serial": "MT-CB-04", "municipality": "demo-municipality", "hub": "botanical-hub"},
+  {"serial": "MT-CB-05", "municipality": "demo-municipality", "hub": "botanical-hub"},
+  {"serial": "MT-CB-06", "municipality": "demo-municipality", "hub": "botanical-hub"},
+  {"serial": "MT-CB-07", "municipality": "demo-municipality", "hub": "botanical-hub"},
+  {"serial": "MT-CB-08", "municipality": "demo-municipality", "hub": "botanical-hub"},
+  {"serial": "MT-CB-09", "municipality": "demo-municipality", "hub": "botanical-hub"},
+  {"serial": "MT-CB-10", "municipality": "demo-municipality", "hub": "botanical-hub"}
+]

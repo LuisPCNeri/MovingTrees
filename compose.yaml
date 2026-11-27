@@ -1,0 +1,81 @@
+services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-movingtrees}
+      POSTGRES_USER: ${POSTGRES_USER:-movingtrees}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-movingtrees}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/${POSTGRES_DB:-movingtrees}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-movingtrees}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-movingtrees}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "${BACKEND_PORT:-8081}:8080"
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "${FRONTEND_PORT:-3000}:8080"
+    depends_on:
+      backend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+  broker:
+    image: eclipse-mosquitto:2
+    ports:
+      - "${MQTT_PORT:-1883}:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/passwd:/mosquitto/config/passwd:ro
+      - ./mosquitto/acl:/mosquitto/config/acl:ro
+    restart: unless-stopped
+
+  simulator:
+    build: .
+    environment:
+      PUBLISH_RATE: ${PUBLISH_RATE:-1}
+      VEHICLE_COUNT: ${VEHICLE_COUNT:-10}
+      FAULT_PROBABILITY: ${FAULT_PROBABILITY:-0.01}
+      VEHICLES_FILE: /data/vehicles.json
+      ROUTES_FILE: /data/routes.json
+      MQTT_HOST: broker
+      MQTT_PORT: 1883
+      MQTT_USERNAME: simulator
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-demo-simulator-password}
+    volumes:
+      - ${VEHICLES_FILE:-./simulator/vehicles.json}:/data/vehicles.json:ro
+      - ${ROUTES_FILE:-./simulator/routes.json}:/data/routes.json:ro
+    depends_on:
+      - broker
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
