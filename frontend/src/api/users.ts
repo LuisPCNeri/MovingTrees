@@ -45,15 +45,41 @@ export interface UserQuery {
   name?: string
 }
 
-export async function listUsers(query: UserQuery, signal?: AbortSignal): Promise<Page<User>> {
+export interface CreateUserRequest {
+  name: string
+  username: string
+  password: string
+  role: Role
+  teamId: number
+}
+
+// Backend ApiError: { message, fieldErrors }
+export class ApiError extends Error {
+  readonly fieldErrors: Record<string, string>
+
+  constructor(message: string, fieldErrors: Record<string, string> = {}) {
+    super(message)
+    this.fieldErrors = fieldErrors
+  }
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`/api${path}`, init)
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new ApiError(body?.message ?? `Request failed (${res.status})`, body?.fieldErrors)
+  }
+  return res.json()
+}
+
+export function listUsers(query: UserQuery, signal?: AbortSignal): Promise<Page<User>> {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query)) {
     if (value !== undefined && value !== '') params.set(key, String(value))
   }
-  const res = await fetch(`/api/users?${params}`, { signal })
-  if (!res.ok) {
-    const body = await res.json().catch(() => null)
-    throw new Error(body?.message ?? `Request failed (${res.status})`)
-  }
-  return res.json()
+  return request(`/users?${params}`, { signal })
+}
+
+export function createUser(body: CreateUserRequest): Promise<User> {
+  return request('/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight, UserRoundCheck, type LucideIcon } from 'lucide-react'
+import { CalendarClock, Check, ChevronDown, ChevronLeft, ChevronRight, Plus, UserRoundCheck, type LucideIcon } from 'lucide-react'
 import { AdminLayout } from '../../components/AdminLayout'
+import { FIELD } from '../../components/styles'
 import { listUsers, ROLE_LABELS, ROLES, type Page, type Role, type Status, type User } from '../../api/users'
 
 const PAGE_SIZE = 20
@@ -9,8 +10,6 @@ const STATS: { status: Status; label: string; icon: LucideIcon }[] = [
   { status: 'INACTIVE', label: 'Awaiting activation', icon: CalendarClock },
 ]
 const COLUMNS = ['Name', 'Username', 'Role', 'Team', 'Access']
-const FIELD =
-  'h-11 w-full rounded-lg border border-slate-300 bg-white text-sm font-normal text-slate-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20'
 const CELL = 'px-5 py-3.5'
 
 interface Filters {
@@ -60,8 +59,19 @@ export function UsersPage() {
 
   return (
     <AdminLayout active="Users" breadcrumb="Municipality / Users">
-      <h1 className="text-3xl font-bold tracking-tight">People who move the city</h1>
-      <p className="mt-3 text-sm text-slate-600">Manage access, roles and teams for municipal operations.</p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">People who move the city</h1>
+          <p className="mt-3 text-sm text-slate-600">Manage access, roles and teams for municipal operations.</p>
+        </div>
+        <a
+          href="/admin/users/new"
+          className="inline-flex h-11 items-center gap-2 rounded-lg bg-brand px-5 text-sm font-semibold text-white hover:bg-forest"
+        >
+          <Plus className="size-4" aria-hidden />
+          Create user
+        </a>
+      </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {STATS.map(({ status, label, icon: Icon }) => {
