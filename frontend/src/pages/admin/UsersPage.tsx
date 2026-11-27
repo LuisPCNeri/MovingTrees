@@ -17,10 +17,11 @@ interface Filters {
   name: string
   role: Role | ''
   status: Status | ''
+  teamId: string
 }
 
 export function UsersPage() {
-  const [filters, setFilters] = useState<Filters>({ name: '', role: '', status: '' })
+  const [filters, setFilters] = useState<Filters>({ name: '', role: '', status: '', teamId: '' })
   const [page, setPage] = useState(0)
   const [data, setData] = useState<Page<User> | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +46,18 @@ export function UsersPage() {
     // debounce so typing in the search box doesn't fire one request per key
     const t = setTimeout(() => {
       const { name, role, status } = filters
-      listUsers({ page, size: PAGE_SIZE, name: name.trim(), role: role || undefined, status: status || undefined }, ctrl.signal)
+      const teamId = Number(filters.teamId)
+      listUsers(
+        {
+          page,
+          size: PAGE_SIZE,
+          name: name.trim(),
+          role: role || undefined,
+          status: status || undefined,
+          teamId: Number.isInteger(teamId) && teamId > 0 ? teamId : undefined,
+        },
+        ctrl.signal,
+      )
         .then((res) => {
           setData(res)
           setError(null)
@@ -103,7 +115,7 @@ export function UsersPage() {
         })}
       </div>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-[2fr_1fr]">
+      <div className="mt-5 grid gap-4 sm:grid-cols-[2fr_1fr_1fr]">
         <label className="text-xs font-medium text-slate-700">
           Search people
           <input
@@ -131,6 +143,20 @@ export function UsersPage() {
             </select>
             <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-slate-500" aria-hidden />
           </span>
+        </label>
+        {/* shortcut: no teams endpoint yet, swap for a team select once the backend lists teams */}
+        <label className="text-xs font-medium text-slate-700">
+          Team ID
+          <input
+            type="number"
+            min={1}
+            step={1}
+            inputMode="numeric"
+            value={filters.teamId}
+            onChange={(e) => updateFilters({ teamId: e.target.value })}
+            placeholder="All teams"
+            className={`mt-1.5 block px-3 ${FIELD}`}
+          />
         </label>
       </div>
 
@@ -171,8 +197,8 @@ export function UsersPage() {
                         <StatusBadge status={u.status} />
                       </td>
                       <td className={CELL}>
-                        <a href={`/admin/users/${u.id}`} className="font-semibold text-blue-700 hover:underline">
-                          Edit<span className="sr-only"> {u.name}</span>
+                        <a href={`/admin/users/${u.id}`} aria-label={`Edit ${u.name}`} className="font-semibold text-blue-700 hover:underline">
+                          Edit
                         </a>
                       </td>
                     </tr>

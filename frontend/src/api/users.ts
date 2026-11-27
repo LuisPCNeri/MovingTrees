@@ -42,6 +42,7 @@ export interface UserQuery {
   size?: number
   role?: Role
   status?: Status
+  teamId?: number
   name?: string
 }
 
@@ -67,6 +68,8 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, init)
+  // the backend answers 403 to anyone who is not a municipal administrator
+  if (res.status === 403) location.replace('/forbidden')
   if (!res.ok) {
     const body = await res.json().catch(() => null)
     throw new ApiError(body?.message ?? `Request failed (${res.status})`, body?.fieldErrors, res.status)
