@@ -1,6 +1,6 @@
 # Telemetry simulator
 
-Run the simulator and Mosquitto with `docker compose up --build`.
+Run the project services, simulator, and Mosquitto with `docker compose up --build`.
 
 | Environment variable | Default | Meaning |
 | --- | ---: | --- |
