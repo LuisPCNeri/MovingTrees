@@ -38,6 +38,12 @@ pnpm-debug.log*
 
 # Testing
 coverage/
+.pytest_cache/
+
+# Python
+.agent_tools/
+__pycache__/
+*.py[cod]
 
 # =========================
 # OS & Editors

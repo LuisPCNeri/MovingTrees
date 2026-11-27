@@ -1,0 +1,19 @@
+services:
+  broker:
+    image: eclipse-mosquitto:2
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+
+  simulator:
+    build: .
+    environment:
+      PUBLISH_RATE: ${PUBLISH_RATE:-1}
+      VEHICLE_COUNT: ${VEHICLE_COUNT:-10}
+      MQTT_HOST: broker
+      MQTT_PORT: 1883
+    depends_on:
+      - broker
+    restart: unless-stopped
