@@ -66,4 +66,11 @@ public class AppUser {
         this.role = role;
         this.status = AppUserStatus.INACTIVE;
     }
+
+    public void changeRole(AppUserRole role) {
+        this.role = role;
+    }
+    public void changeTeam(Team team) {
+        this.team = team;
+    }
 }

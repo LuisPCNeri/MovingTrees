@@ -14,6 +14,7 @@ import pt.ua.MovingTree.dtos.ApiError;
 import pt.ua.MovingTree.exceptions.DuplicateUsernameException;
 import pt.ua.MovingTree.exceptions.ForbiddenOperationException;
 import pt.ua.MovingTree.exceptions.InvalidPagingException;
+import pt.ua.MovingTree.exceptions.InvalidUserUpdateException;
 import pt.ua.MovingTree.exceptions.TeamNotInMunicipalityException;
 import pt.ua.MovingTree.exceptions.UserNotFoundException;
 
@@ -37,6 +38,12 @@ public class ApiExceptionHandler {
     @ExceptionHandler(InvalidPagingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleInvalidPaging(InvalidPagingException exception) {
+        return ApiError.of(exception.getMessage());
+    }
+
+    @ExceptionHandler(InvalidUserUpdateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleInvalidUserUpdate(InvalidUserUpdateException exception) {
         return ApiError.of(exception.getMessage());
     }
 

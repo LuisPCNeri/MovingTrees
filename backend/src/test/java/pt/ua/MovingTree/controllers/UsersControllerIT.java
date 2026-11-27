@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static pt.ua.MovingTree.support.IdentityTestData.municipality;
@@ -205,6 +206,69 @@ class UsersControllerIT extends PostgresIntegrationTest {
         mockMvc.perform(get("/users/{id}", 1L)
                 .session(session(AppUserRole.FIELD_WORKER, 1L)))
                 .andExpect(status().isForbidden());
+    }
+
+    //PUT /users/{id} altera role e team e devolve o utilizador atualizado
+    @Test
+    void updatesRoleAndTeam() throws Exception {
+        long municipalityId = municipality(jdbc, "api-update-a");
+        long oldTeamId = team(jdbc, municipalityId, "parks-api-update-old");
+        long newTeamId = team(jdbc, municipalityId, "ops-api-update-new");
+        long userId = user(jdbc, municipalityId, oldTeamId, "Ana", "ana.update-api", "FIELD_WORKER", "ACTIVE");
+
+        mockMvc.perform(put("/users/{id}", userId)
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, municipalityId))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of("role", "FLEET_OPERATOR", "teamId", newTeamId))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(userId))
+                .andExpect(jsonPath("$.role").value("FLEET_OPERATOR"))
+                .andExpect(jsonPath("$.teamId").value(newTeamId));
+    }
+
+    //falha, team de outro município deve devolver 400
+    @Test
+    void rejectsUpdateWithTeamFromAnotherMunicipality() throws Exception {
+        long municipalityId = municipality(jdbc, "api-update-400-a");
+        long teamA = team(jdbc, municipalityId, "parks-api-update-400-a");
+        long teamB = team(jdbc, municipality(jdbc, "api-update-400-b"), "parks-api-update-400-b");
+        long userId = user(jdbc, municipalityId, teamA, "Ana", "ana.update-400", "FIELD_WORKER");
+
+        mockMvc.perform(put("/users/{id}", userId)
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, municipalityId))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of("teamId", teamB))))
+                .andExpect(status().isBadRequest());
+    }
+
+    //falha, pedido sem role e sem team deve devolver 400
+    @Test
+    void rejectsUpdateWithoutChanges() throws Exception {
+        mockMvc.perform(put("/users/{id}", 1L)
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, 1L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    //falha, sessão sem role de administrador municipal deve receber 403
+    @Test
+    void rejectsUpdateForNonAdministrator() throws Exception {
+        mockMvc.perform(put("/users/{id}", 1L)
+                .session(session(AppUserRole.FIELD_WORKER, 1L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of("role", "FLEET_OPERATOR"))))
+                .andExpect(status().isForbidden());
+    }
+
+    //falha, id inexistente deve devolver 404
+    @Test
+    void rejectsUpdateForUnknownUser() throws Exception {
+        mockMvc.perform(put("/users/{id}", Long.MAX_VALUE)
+                .session(session(AppUserRole.MUNICIPAL_ADMINISTRATOR, 1L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of("role", "FLEET_OPERATOR"))))
+                .andExpect(status().isNotFound());
     }
 
     private static Stream<Arguments> invalidPaging() {
