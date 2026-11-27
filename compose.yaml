@@ -12,8 +12,11 @@ services:
     environment:
       PUBLISH_RATE: ${PUBLISH_RATE:-1}
       VEHICLE_COUNT: ${VEHICLE_COUNT:-10}
+      VEHICLES_FILE: /data/vehicles.json
       MQTT_HOST: broker
       MQTT_PORT: 1883
+    volumes:
+      - ${VEHICLES_FILE:-./simulator/vehicles.json}:/data/vehicles.json:ro
     depends_on:
       - broker
     restart: unless-stopped

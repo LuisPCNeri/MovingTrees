@@ -11,8 +11,14 @@ from pathlib import Path
 import paho.mqtt.client as mqtt
 import pytest
 
+from simulator.config import SimulatorConfig
+from simulator.registry import load_vehicles
+
 
 ROOT = Path(__file__).resolve().parents[1]
+REGISTERED_SERIALS = [
+    vehicle.serial for vehicle in load_vehicles(SimulatorConfig().vehicles_file)
+]
 
 
 @pytest.fixture(scope="module")
@@ -107,6 +113,7 @@ def test_configured_rate_and_fleet_size_apply_after_restart(mosquitto):
     second_run, second_fleet = collect_run(20, mosquitto)
 
     assert len(first_run) == pytest.approx(32, rel=0.25)
-    assert first_fleet == {f"SIM-{index:04d}" for index in range(1, 11)}
+    assert first_fleet == set(REGISTERED_SERIALS[:10])
     assert len(second_run) == pytest.approx(32, rel=0.25)
-    assert second_fleet == {f"SIM-{index:04d}" for index in range(1, 21)}
+    assert second_fleet == set(REGISTERED_SERIALS[:20])
+    assert first_fleet | second_fleet <= set(REGISTERED_SERIALS)

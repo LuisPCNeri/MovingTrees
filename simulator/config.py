@@ -1,12 +1,14 @@
 import math
 import os
 from dataclasses import dataclass
+from pathlib import Path
 
 
 @dataclass(frozen=True)
 class SimulatorConfig:
     publish_rate: float = 1.0
     vehicle_count: int = 10
+    vehicles_file: str = str(Path(__file__).with_name("vehicles.json"))
 
     @classmethod
     def from_env(cls):
@@ -27,4 +29,11 @@ class SimulatorConfig:
         if vehicle_count <= 0:
             raise ValueError("VEHICLE_COUNT must be a positive integer")
 
-        return cls(publish_rate=publish_rate, vehicle_count=vehicle_count)
+        vehicles_file = os.getenv(
+            "VEHICLES_FILE", str(Path(__file__).with_name("vehicles.json"))
+        )
+        return cls(
+            publish_rate=publish_rate,
+            vehicle_count=vehicle_count,
+            vehicles_file=vehicles_file,
+        )

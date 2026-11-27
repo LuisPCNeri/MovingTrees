@@ -8,12 +8,13 @@ import time
 import paho.mqtt.client as mqtt
 
 from simulator.config import SimulatorConfig
+from simulator.registry import load_vehicles
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def run(config, broker_host, broker_port):
+def run(config, broker_host, broker_port, vehicles):
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.enable_logger(logger)
     client.connect(broker_host, broker_port)
@@ -32,12 +33,20 @@ def run(config, broker_host, broker_port):
             if delay > 0 and stopped.wait(delay):
                 break
 
-            vehicle_id = f"SIM-{vehicle_index + 1:04d}"
+            vehicle = vehicles[vehicle_index]
             payload = json.dumps(
-                {"vehicle_id": vehicle_id, "event": "heartbeat", "timestamp": time.time()}
+                {
+                    "vehicle_id": vehicle.serial,
+                    "event": "heartbeat",
+                    "timestamp": time.time(),
+                }
             )
-            client.publish(f"simulator/vehicles/{vehicle_id}", payload, qos=0)
-            vehicle_index = (vehicle_index + 1) % config.vehicle_count
+            client.publish(
+                f"simulator/vehicles/{vehicle.serial}",
+                payload,
+                qos=0,
+            )
+            vehicle_index = (vehicle_index + 1) % len(vehicles)
             next_publish += interval
 
             if next_publish < time.monotonic():
@@ -50,6 +59,13 @@ def run(config, broker_host, broker_port):
 def main():
     try:
         config = SimulatorConfig.from_env()
+        vehicles = load_vehicles(config.vehicles_file)
+        if config.vehicle_count > len(vehicles):
+            raise ValueError(
+                f"VEHICLE_COUNT ({config.vehicle_count}) exceeds the number "
+                f"of registered vehicles ({len(vehicles)})"
+            )
+        vehicles = vehicles[: config.vehicle_count]
         broker_host = os.getenv("MQTT_HOST", "localhost")
         broker_port = int(os.getenv("MQTT_PORT", "1883"))
         if not 1 <= broker_port <= 65535:
@@ -57,7 +73,7 @@ def main():
     except ValueError as error:
         raise SystemExit(str(error)) from error
 
-    run(config, broker_host, broker_port)
+    run(config, broker_host, broker_port, vehicles)
 
 
 if __name__ == "__main__":

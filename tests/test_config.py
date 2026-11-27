@@ -6,11 +6,18 @@ from simulator.config import SimulatorConfig
 def test_defaults(monkeypatch):
     monkeypatch.delenv("PUBLISH_RATE", raising=False)
     monkeypatch.delenv("VEHICLE_COUNT", raising=False)
+    monkeypatch.delenv("VEHICLES_FILE", raising=False)
 
     assert SimulatorConfig.from_env() == SimulatorConfig(
         publish_rate=1.0,
         vehicle_count=10,
     )
+
+
+def test_reads_registry_path(monkeypatch):
+    monkeypatch.setenv("VEHICLES_FILE", "/data/fleet.json")
+
+    assert SimulatorConfig.from_env().vehicles_file == "/data/fleet.json"
 
 
 def test_reads_rate_and_vehicle_count(monkeypatch):
