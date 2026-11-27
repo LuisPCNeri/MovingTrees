@@ -1,7 +1,20 @@
 import type { ReactNode } from 'react'
-import { Bike, ChartColumn, LayoutGrid, Leaf, MapPin, SlidersVertical, Users, Wallet, Wrench, type LucideIcon } from 'lucide-react'
+import {
+  Bike,
+  ChartColumn,
+  LayoutGrid,
+  Leaf,
+  MapPin,
+  SlidersVertical,
+  Users,
+  Wallet,
+  Wrench,
+  type LucideIcon,
+} from 'lucide-react'
 
-const NAV: [string, LucideIcon][] = [
+type Nav = [string, LucideIcon][]
+
+const NAV: Nav = [
   ['Overview', LayoutGrid],
   ['Vehicles', Bike],
   ['Hubs', MapPin],
@@ -12,7 +25,13 @@ const NAV: [string, LucideIcon][] = [
   ['Analytics', ChartColumn],
 ]
 
-export function AdminLayout({ active, breadcrumb, children }: { active: string; breadcrumb: string; children: ReactNode }) {
+interface Props {
+  active: string
+  breadcrumb: string
+  children: ReactNode
+}
+
+export function AdminLayout({ active, breadcrumb, children }: Props) {
   return (
     <div className="flex min-h-screen bg-canvas text-slate-900">
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col bg-forest px-3 py-7 text-white md:flex">
@@ -39,6 +58,10 @@ export function AdminLayout({ active, breadcrumb, children }: { active: string; 
             )
           })}
         </nav>
+        <div className="mt-auto px-3">
+          <p className="text-xs font-medium tracking-wide uppercase">Municipality of Aveiro</p>
+          <p className="mt-4 text-xs text-white/90">Sustainable operations</p>
+        </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-16 items-center border-b border-slate-200 bg-white px-4 text-xs text-slate-600 md:px-8">
