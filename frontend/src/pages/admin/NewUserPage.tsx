@@ -8,6 +8,9 @@ import { ApiError, createUser, ROLE_LABELS, ROLES, type Role } from '../../api/u
 const ROLE_PERMISSIONS: Partial<Record<Role, string[]>> = {
   FIELD_WORKER: ['View and reserve vehicles', 'Start and end trips', 'View personal charges', 'Report issues'],
 }
+// the backend caps passwords at 72 characters (bcrypt limit); 8 is our minimum
+const PASSWORD_MIN = 8
+const PASSWORD_MAX = 72
 
 export function NewUserPage() {
   const [role, setRole] = useState<Role | ''>('')
@@ -17,6 +20,11 @@ export function NewUserPage() {
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     const form = new FormData(e.currentTarget)
+    const password = String(form.get('password'))
+    if (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
+      setError(new ApiError('Validation failed', { password: `Use ${PASSWORD_MIN} to ${PASSWORD_MAX} characters.` }))
+      return
+    }
     setSubmitting(true)
     setError(null)
     try {
@@ -24,13 +32,18 @@ export function NewUserPage() {
         name: String(form.get('name')).trim(),
         // the work email is the user's login identifier
         username: String(form.get('email')).trim().toLowerCase(),
-        password: String(form.get('password')),
+        password,
         role: role as Role,
         teamId: Number(form.get('teamId')),
       })
       location.assign('/admin/users')
     } catch (err) {
-      setError(err instanceof ApiError ? err : new ApiError('Could not reach the server. Try again.'))
+      if (err instanceof ApiError && err.status === 409) {
+        // 409 = the username (work email) is taken, so point at that field
+        setError(new ApiError(err.message, { username: 'This email already has access.' }, 409))
+      } else {
+        setError(err instanceof ApiError ? err : new ApiError('Could not reach the server. Try again.'))
+      }
       setSubmitting(false)
     }
   }
@@ -53,7 +66,7 @@ export function NewUserPage() {
         <form onSubmit={onSubmit} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
           <h2 className="text-lg font-semibold">Details and permissions</h2>
 
-          {error && (
+          {error && Object.keys(error.fieldErrors).length === 0 && (
             <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
               {error.message}
             </p>
@@ -96,8 +109,7 @@ export function NewUserPage() {
                 name="password"
                 type="password"
                 required
-                minLength={8}
-                maxLength={72}
+                maxLength={PASSWORD_MAX}
                 autoComplete="new-password"
                 className={`px-3 ${FIELD}`}
               />
