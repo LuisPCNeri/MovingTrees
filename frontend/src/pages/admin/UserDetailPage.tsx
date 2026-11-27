@@ -34,9 +34,7 @@ export function UserDetailPage({ id }: { id: string }) {
     return () => ctrl.abort()
   }, [id])
 
-  const team = Number(teamId)
-  const unchanged = !!user && role === user.role && team === user.teamId
-  const invalid = !role || !Number.isInteger(team) || team < 1
+  const unchanged = !!user && role === user.role && teamId === String(user.teamId)
 
   // Runs one action at a time and reports its outcome in the shared banner.
   async function run(kind: 'save' | 'status', action: () => Promise<string>) {
@@ -54,9 +52,9 @@ export function UserDetailPage({ id }: { id: string }) {
 
   function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!user || unchanged || invalid) return
+    if (!user || !role || unchanged) return
     run('save', async () => {
-      load(await updateUser(user.id, { role, teamId: team }))
+      load(await updateUser(user.id, { role, teamId: Number(teamId) }))
       return "Changes saved. They apply at the user's next sign-in."
     })
   }
@@ -110,10 +108,10 @@ export function UserDetailPage({ id }: { id: string }) {
               <Field label="Role">
                 <Select options={ROLE_OPTIONS} value={role} onChange={(e) => edit(() => setRole(e.target.value as Role))} />
               </Field>
-              <Field label="Team" error={error?.fieldErrors.teamId ?? (teams.error ? 'Could not load teams.' : undefined)}>
+              <Field label="Team" error={error?.fieldErrors.teamId ?? teams.error}>
                 {/* the user's current team stays selectable even before the list arrives */}
                 <Select
-                  options={teams.teams ? teams.options : [[teamId, teams.nameOf(Number(teamId))]]}
+                  options={teams.list ? teams.options : [[teamId, teams.nameOf(Number(teamId))]]}
                   value={teamId}
                   onChange={(e) => edit(() => setTeamId(e.target.value))}
                 />
@@ -121,7 +119,7 @@ export function UserDetailPage({ id }: { id: string }) {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <button type="submit" disabled={unchanged || invalid || busy !== null} className={BUTTON_PRIMARY}>
+              <button type="submit" disabled={unchanged || busy !== null} className={BUTTON_PRIMARY}>
                 {busy === 'save' ? 'Saving…' : 'Save changes'}
               </button>
               <a href="/admin/users" className={BUTTON_SECONDARY}>

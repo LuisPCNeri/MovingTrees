@@ -84,7 +84,7 @@ export function NewUserPage() {
                 </option>
               </Select>
             </Field>
-            <Field label="Team" required error={fieldError('teamId') ?? (teams.error ? 'Could not load teams.' : undefined)}>
+            <Field label="Team" required error={fieldError('teamId') ?? teams.error}>
               <Select
                 options={teams.options}
                 name="teamId"
@@ -94,7 +94,7 @@ export function NewUserPage() {
                 className={teamId ? '' : 'text-slate-500'}
               >
                 <option value="" disabled>
-                  {teams.teams ? 'Select a team' : 'Loading teams…'}
+                  {teams.list ? 'Select a team' : 'Loading teams…'}
                 </option>
               </Select>
             </Field>

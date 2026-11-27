@@ -1,5 +1,5 @@
 // Mirrors backend DTOs in pt.ua.MovingTree.dtos / enums.
-export const ROLES = [
+const ROLES = [
   'MUNICIPAL_ADMINISTRATOR',
   'FIELD_WORKER',
   'FLEET_OPERATOR',
@@ -44,12 +44,13 @@ export interface Page<T> {
   totalPages: number
 }
 
+/** GET /users query; empty values are left out of the URL. */
 export interface UserQuery {
   page?: number
   size?: number
-  role?: Role
-  status?: Status
-  teamId?: number
+  role?: Role | ''
+  status?: Status | ''
+  teamId?: string
   name?: string
 }
 
@@ -87,6 +88,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json()
 }
 
+const json = (method: string, body: unknown): RequestInit => ({
+  method,
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body),
+})
+
 export function listUsers(query: UserQuery, signal?: AbortSignal): Promise<Page<User>> {
   const params = new URLSearchParams()
   for (const [key, value] of Object.entries(query)) {
@@ -94,12 +101,6 @@ export function listUsers(query: UserQuery, signal?: AbortSignal): Promise<Page<
   }
   return request(`/users?${params}`, { signal })
 }
-
-const json = (method: string, body: unknown): RequestInit => ({
-  method,
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(body),
-})
 
 export function createUser(body: CreateUserRequest): Promise<User> {
   return request('/users', json('POST', body))

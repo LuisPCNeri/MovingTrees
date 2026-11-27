@@ -48,18 +48,7 @@ export function UsersPage() {
     const ctrl = new AbortController()
     // debounce so typing in the search box doesn't fire one request per key
     const t = setTimeout(() => {
-      const { name, role, status } = filters
-      listUsers(
-        {
-          page,
-          size: PAGE_SIZE,
-          name: name.trim(),
-          role: role || undefined,
-          status: status || undefined,
-          teamId: filters.teamId ? Number(filters.teamId) : undefined,
-        },
-        ctrl.signal,
-      )
+      listUsers({ ...filters, name: filters.name.trim(), page, size: PAGE_SIZE }, ctrl.signal)
         .then((res) => {
           setData(res)
           setError(null)
@@ -129,7 +118,7 @@ export function UsersPage() {
             <option value="">All roles</option>
           </Select>
         </Field>
-        <Field label="Team" error={teams.error ? 'Could not load teams.' : undefined}>
+        <Field label="Team" error={teams.error}>
           <Select options={teams.options} value={filters.teamId} onChange={(e) => updateFilters({ teamId: e.target.value })}>
             <option value="">All teams</option>
           </Select>
