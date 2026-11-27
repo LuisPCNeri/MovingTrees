@@ -1,1 +1,13 @@
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-forest: #1b5e34;
+  --color-mint: #8ee6a6;
+  --color-brand: #1f7a3a;
+  --color-canvas: #f4f6f3;
+}
+
+body {
+  background: var(--color-canvas);
+}
