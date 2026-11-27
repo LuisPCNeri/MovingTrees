@@ -9,6 +9,7 @@ class SimulatorConfig:
     publish_rate: float = 1.0
     vehicle_count: int = 10
     vehicles_file: str = str(Path(__file__).with_name("vehicles.json"))
+    routes_file: str = str(Path(__file__).with_name("routes.json"))
 
     @classmethod
     def from_env(cls):
@@ -32,8 +33,12 @@ class SimulatorConfig:
         vehicles_file = os.getenv(
             "VEHICLES_FILE", str(Path(__file__).with_name("vehicles.json"))
         )
+        routes_file = os.getenv(
+            "ROUTES_FILE", str(Path(__file__).with_name("routes.json"))
+        )
         return cls(
             publish_rate=publish_rate,
             vehicle_count=vehicle_count,
             vehicles_file=vehicles_file,
+            routes_file=routes_file,
         )

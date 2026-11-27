@@ -15,12 +15,14 @@ services:
       PUBLISH_RATE: ${PUBLISH_RATE:-1}
       VEHICLE_COUNT: ${VEHICLE_COUNT:-10}
       VEHICLES_FILE: /data/vehicles.json
+      ROUTES_FILE: /data/routes.json
       MQTT_HOST: broker
       MQTT_PORT: 1883
       MQTT_USERNAME: simulator
       MQTT_PASSWORD: ${MQTT_PASSWORD:-demo-simulator-password}
     volumes:
       - ${VEHICLES_FILE:-./simulator/vehicles.json}:/data/vehicles.json:ro
+      - ${ROUTES_FILE:-./simulator/routes.json}:/data/routes.json:ro
     depends_on:
       - broker
     restart: unless-stopped

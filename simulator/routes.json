@@ -1,0 +1,14 @@
+[
+  {
+    "municipality": "demo-municipality",
+    "hub": "central-hub",
+    "latitude": 38.7223,
+    "longitude": -9.1393
+  },
+  {
+    "municipality": "demo-municipality",
+    "hub": "botanical-hub",
+    "latitude": 38.7238,
+    "longitude": -9.1358
+  }
+]

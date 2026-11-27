@@ -7,6 +7,7 @@ def test_defaults(monkeypatch):
     monkeypatch.delenv("PUBLISH_RATE", raising=False)
     monkeypatch.delenv("VEHICLE_COUNT", raising=False)
     monkeypatch.delenv("VEHICLES_FILE", raising=False)
+    monkeypatch.delenv("ROUTES_FILE", raising=False)
 
     assert SimulatorConfig.from_env() == SimulatorConfig(
         publish_rate=1.0,
@@ -18,6 +19,12 @@ def test_reads_registry_path(monkeypatch):
     monkeypatch.setenv("VEHICLES_FILE", "/data/fleet.json")
 
     assert SimulatorConfig.from_env().vehicles_file == "/data/fleet.json"
+
+
+def test_reads_routes_path(monkeypatch):
+    monkeypatch.setenv("ROUTES_FILE", "/data/routes.json")
+
+    assert SimulatorConfig.from_env().routes_file == "/data/routes.json"
 
 
 def test_reads_rate_and_vehicle_count(monkeypatch):

@@ -7,14 +7,24 @@ import time
 import paho.mqtt.client as mqtt
 
 from simulator.config import SimulatorConfig
+from simulator.generators.gps import GPSGenerator
 from simulator.publisher import TelemetryPublisher
 from simulator.registry import load_vehicles
+from simulator.routes import load_hub_locations
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def run(config, broker_host, broker_port, vehicles, mqtt_username, mqtt_password):
+def run(
+    config,
+    broker_host,
+    broker_port,
+    vehicles,
+    hub_locations,
+    mqtt_username,
+    mqtt_password,
+):
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     client.enable_logger(logger)
     publisher = TelemetryPublisher(
@@ -25,6 +35,7 @@ def run(config, broker_host, broker_port, vehicles, mqtt_username, mqtt_password
         password=mqtt_password,
     )
     publisher.connect()
+    gps_generator = GPSGenerator(publisher, hub_locations)
 
     stopped = threading.Event()
     signal.signal(signal.SIGTERM, lambda *_: stopped.set())
@@ -40,10 +51,9 @@ def run(config, broker_host, broker_port, vehicles, mqtt_username, mqtt_password
                 break
 
             vehicle = vehicles[vehicle_index]
-            publisher.publish(
+            gps_generator.tick(
                 vehicle,
-                "heartbeat",
-                {},
+                elapsed_seconds=config.vehicle_count / config.publish_rate,
             )
             vehicle_index = (vehicle_index + 1) % len(vehicles)
             next_publish += interval
@@ -58,12 +68,19 @@ def main():
     try:
         config = SimulatorConfig.from_env()
         vehicles = load_vehicles(config.vehicles_file)
+        hub_locations = load_hub_locations(config.routes_file)
         if config.vehicle_count > len(vehicles):
             raise ValueError(
                 f"VEHICLE_COUNT ({config.vehicle_count}) exceeds the number "
                 f"of registered vehicles ({len(vehicles)})"
             )
         vehicles = vehicles[: config.vehicle_count]
+        for vehicle in vehicles:
+            if (vehicle.municipality, vehicle.hub) not in hub_locations:
+                raise ValueError(
+                    f"No coordinates configured for hub {vehicle.hub} "
+                    f"in municipality {vehicle.municipality}"
+                )
         broker_host = os.getenv("MQTT_HOST", "localhost")
         broker_port = int(os.getenv("MQTT_PORT", "1883"))
         if not 1 <= broker_port <= 65535:
@@ -78,6 +95,7 @@ def main():
         broker_host,
         broker_port,
         vehicles,
+        hub_locations,
         mqtt_username,
         mqtt_password,
     )
