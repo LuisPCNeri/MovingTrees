@@ -11,7 +11,7 @@ export type Role = (typeof ROLES)[number]
 export type Status = 'ACTIVE' | 'INACTIVE'
 
 export const ROLE_LABELS: Record<Role, string> = {
-  MUNICIPAL_ADMINISTRATOR: 'Municipal admin.',
+  MUNICIPAL_ADMINISTRATOR: 'Municipal administrator',
   FIELD_WORKER: 'Field agent',
   FLEET_OPERATOR: 'Fleet operator',
   FIELD_TECHNICIAN: 'Technician',
