@@ -15,7 +15,7 @@ API_URL=http://localhost:8081 npm run dev   # point the proxy at another backend
 ```bash
 npm run lint
 npm test                           # component tests (Vitest + Testing Library)
-npx playwright install chromium    # first time only
+npm run test:e2e:install           # first time only: downloads Chromium
 npm run test:e2e                   # browser tests (Playwright), API mocked, no backend needed
 npm run build                      # type-check and bundle
 ```

@@ -53,7 +53,7 @@ export function UserDetailPage({ id }: { id: string }) {
   function onSubmit(e: FormEvent) {
     e.preventDefault()
     if (!user || !role || unchanged) return
-    run('save', async () => {
+    void run('save', async () => {
       load(await updateUser(user.id, { role, teamId: Number(teamId) }))
       return "Changes saved. They apply at the user's next sign-in."
     })
@@ -61,7 +61,7 @@ export function UserDetailPage({ id }: { id: string }) {
 
   function setStatus(status: Status) {
     if (!user) return
-    run('status', async () => {
+    void run('status', async () => {
       // only the status changed, so keep any unsaved role/team edits in the form
       setUser(await changeStatus(user.id, status))
       return status === 'ACTIVE' ? `Access activated. ${user.name} can now sign in.` : 'Access deactivated.'
