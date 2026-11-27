@@ -78,4 +78,14 @@ describe('UserDetailPage', () => {
     expect((await screen.findByRole('status')).textContent).toBe('Access activated. Paulo can now sign in.')
     expect(fetch).toHaveBeenLastCalledWith('/api/users/7/status', expect.objectContaining({ method: 'PATCH', body: '{"status":"ACTIVE"}' }))
   })
+
+  it('keeps the status and shows the error when the change fails', async () => {
+    mockFetch([200, { ...paulo, status: 'INACTIVE' }], [404, { message: 'User not found', fieldErrors: {} }])
+    render(<UserDetailPage id="7" />)
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Activate access' }))
+
+    expect((await screen.findByRole('alert')).textContent).toBe('User not found')
+    expect(screen.getByRole('button', { name: 'Activate access' })).toBeTruthy()
+  })
 })

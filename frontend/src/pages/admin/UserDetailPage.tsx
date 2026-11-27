@@ -17,7 +17,6 @@ export function UserDetailPage({ id }: { id: string }) {
   const [busy, setBusy] = useState<'save' | 'status' | null>(null)
   const [error, setError] = useState<ApiError | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [confirming, setConfirming] = useState(false)
 
   const load = (u: User) => {
     setUser(u)
@@ -48,7 +47,6 @@ export function UserDetailPage({ id }: { id: string }) {
       setError(err as ApiError)
     } finally {
       setBusy(null)
-      setConfirming(false)
     }
   }
 
@@ -134,61 +132,68 @@ export function UserDetailPage({ id }: { id: string }) {
             </div>
           </form>
 
-          <section aria-labelledby="access-heading" className={CARD}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 id="access-heading" className="text-lg font-semibold">
-                Access
-              </h2>
-              <StatusBadge status={user.status} />
-            </div>
-
-            {user.status === 'INACTIVE' ? (
-              <>
-                <p className="mt-2 text-sm text-slate-600">This user cannot sign in until their access is activated.</p>
-                <button
-                  type="button"
-                  disabled={busy !== null}
-                  onClick={() => setStatus('ACTIVE')}
-                  className={`mt-5 ${BUTTON_PRIMARY}`}
-                >
-                  {busy === 'status' ? 'Activating…' : 'Activate access'}
-                </button>
-              </>
-            ) : confirming ? (
-              <div role="alertdialog" aria-labelledby="confirm-text" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
-                <p id="confirm-text" className="text-sm text-red-900">
-                  Deactivate {user.name}? They will not be able to sign in until their access is activated again.
-                </p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    disabled={busy !== null}
-                    onClick={() => setStatus('INACTIVE')}
-                    className={`${BUTTON_DANGER} bg-red-700 text-white hover:bg-red-800`}
-                  >
-                    {busy === 'status' ? 'Deactivating…' : 'Yes, deactivate'}
-                  </button>
-                  <button type="button" onClick={() => setConfirming(false)} className={BUTTON_SECONDARY}>
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <p className="mt-2 text-sm text-slate-600">This user can sign in.</p>
-                <button
-                  type="button"
-                  disabled={busy !== null}
-                  onClick={() => setConfirming(true)}
-                  className={`mt-5 border border-red-300 bg-white text-red-700 hover:bg-red-50 ${BUTTON_DANGER}`}
-                >
-                  Deactivate access
-                </button>
-              </>
-            )}
-          </section>
+          <AccessCard user={user} busy={busy !== null} onChange={setStatus} />
         </>
       )}
     </AdminLayout>
+  )
+}
+
+function AccessCard({ user, busy, onChange }: { user: User; busy: boolean; onChange: (status: Status) => void }) {
+  const [confirming, setConfirming] = useState(false)
+  const active = user.status === 'ACTIVE'
+
+  return (
+    <section aria-labelledby="access-heading" className={CARD}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="access-heading" className="text-lg font-semibold">
+          Access
+        </h2>
+        <StatusBadge status={user.status} />
+      </div>
+
+      {confirming ? (
+        <div role="alertdialog" aria-labelledby="confirm-text" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+          <p id="confirm-text" className="text-sm text-red-900">
+            Deactivate {user.name}? They will not be able to sign in until their access is activated again.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setConfirming(false)
+                onChange('INACTIVE')
+              }}
+              className={`${BUTTON_DANGER} bg-red-700 text-white hover:bg-red-800`}
+            >
+              Yes, deactivate
+            </button>
+            <button type="button" onClick={() => setConfirming(false)} className={BUTTON_SECONDARY}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <p className="mt-2 text-sm text-slate-600">
+            {active ? 'This user can sign in.' : 'This user cannot sign in until their access is activated.'}
+          </p>
+          {active ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setConfirming(true)}
+              className={`mt-5 border border-red-300 bg-white text-red-700 hover:bg-red-50 ${BUTTON_DANGER}`}
+            >
+              Deactivate access
+            </button>
+          ) : (
+            <button type="button" disabled={busy} onClick={() => onChange('ACTIVE')} className={`mt-5 ${BUTTON_PRIMARY}`}>
+              Activate access
+            </button>
+          )}
+        </>
+      )}
+    </section>
   )
 }
